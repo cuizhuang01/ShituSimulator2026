@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仕途：中国公务员晋升模拟器</title>
+<style>
+:root{--paper:#efe7d3;--paper-2:#e6dabf;--paper-line:#d7c69f;--ink:#2a231a;--ink-soft:#5b4f3d;--seal:#a6281e;--seal-dark:#7c1a12;--gold:#a9822f;--jade:#3f6152;--shadow:0 2px 10px rgba(0,0,0,.15)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:repeating-linear-gradient(0deg,rgba(0,0,0,.02)0px,rgba(0,0,0,.02)1px,transparent 1px,transparent 26px),radial-gradient(circle at 15% 10%,rgba(166,40,30,.05),transparent 40%),var(--paper);color:var(--ink);font-family:'Noto Sans SC',sans-serif;min-height:100vh}
+h1,h2,h3,h4{font-family:'Noto Serif SC',serif;margin:0 0 4px}
+p{margin:4px 0}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.muted{color:var(--ink-soft);font-size:13px}
+.hint{color:var(--seal);font-size:12px;margin-top:4px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:3px double var(--seal-dark);background:linear-gradient(180deg,var(--paper-2),var(--paper))}
+.brand h1{font-size:24px;letter-spacing:2px}
+.brand h1 span{font-size:14px;font-weight:500;color:var(--ink-soft)}
+.tagline{font-size:12px;color:var(--ink-soft);letter-spacing:1px}
+.seal{width:78px;height:78px;border-radius:50%;flex-shrink:0;border:3px solid var(--seal);box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--seal);display:flex;align-items:center;justify-content:center;transform:rotate(-7deg);background:radial-gradient(circle at 30% 30%,rgba(166,40,30,.10),transparent 60%);position:relative}
+.seal::after{content:"";position:absolute;inset:7px;border:1px solid var(--seal);border-radius:50%;opacity:.55}
+.seal-text{font-family:'Noto Serif SC',serif;font-weight:900;color:var(--seal);font-size:13px;line-height:1.15;text-align:center;letter-spacing:1px}
+.layout{display:grid;grid-template-columns:1fr 290px;grid-template-rows:auto auto;gap:12px 16px;padding:16px 24px;max-width:1440px;margin:0 auto}
+.side-nav{grid-column:1;grid-row:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.content{grid-column:1;grid-row:2}
+.log-feed{grid-column:2;grid-row:1/span 2}
+.nav-title{grid-column:1/-1;font-family:'Noto Serif SC',serif;font-weight:900;font-size:15px;color:var(--seal-dark);padding:4px 0 2px;text-align:center}
+.nav-btn{text-align:center;padding:10px 12px;border:1px solid var(--paper-line);background:var(--paper-2);color:var(--ink);border-radius:4px;font-size:13.5px;transition:background .15s,transform .1s}
+.nav-btn:hover{background:#ddd0ac}
+.nav-btn.active{background:var(--seal);color:var(--paper);border-color:var(--seal-dark);font-weight:700}
+.content{display:flex;flex-direction:column;gap:16px;min-width:0}
+.log-feed{background:var(--paper-2);border:1px solid var(--paper-line);border-radius:6px;padding:12px 14px;height:fit-content;max-height:80vh;overflow-y:auto}
+.log-feed h3{font-size:15px;border-bottom:1px solid var(--paper-line);padding-bottom:6px}
+.log-list{display:flex;flex-direction:column-reverse;gap:0}
+.log-item{font-size:12.5px;padding:6px 0;border-bottom:1px dashed var(--paper-line);line-height:1.5}
+.card{background:var(--paper-2);border:1px solid var(--paper-line);border-radius:6px;padding:12px 16px;box-shadow:var(--shadow)}
+.dashboard{display:flex;flex-direction:column;gap:12px}
+.player-card .player-id h2{font-size:19px}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:var(--paper);border:1px solid var(--paper-line);border-radius:14px;padding:4px 10px;font-size:12px;display:inline-flex;gap:5px;align-items:center}
+.chip b{color:var(--seal-dark)}
+.chip-warn b{color:var(--seal);font-weight:900}
+.chip-btn{cursor:pointer}
+.chip-btn:hover{background:var(--paper-line)}
+.chip-active{border-color:var(--seal);background:#f4e4d8}
+.chip-current{border-color:var(--jade);font-weight:700}
+.meters-card{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 16px}
+.meter{font-size:12.5px}
+.meter-top{display:flex;justify-content:space-between;margin-bottom:3px}
+.meter-top b.danger{color:var(--seal);font-weight:900}
+.meter-bar{background:var(--paper);border:1px solid var(--paper-line);border-radius:6px;height:8px;overflow:hidden}
+.meter-fill{background:var(--jade);height:100%}
+.meter-fill.fill-danger{background:var(--seal)}
+.emergency-banner{background:#f4e0dd;border-color:var(--seal);color:var(--seal-dark);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.panel{background:var(--paper-2);border:1px solid var(--paper-line);border-radius:6px;padding:16px 20px;min-height:340px}
+.panel-head{border-bottom:1px dashed var(--paper-line);padding-bottom:8px;margin-bottom:12px}
+.panel-head h2{font-size:18px}
+.panel-head p{font-size:13px;color:var(--ink-soft)}
+.sub-title{margin-top:18px;font-size:15px;border-top:1px dashed var(--paper-line);padding-top:10px}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.mini-card{background:var(--paper);border:1px solid var(--paper-line);border-radius:6px;padding:10px 12px}
+.mini-card h4{font-size:14px}
+.mini-danger{border-color:var(--seal)}
+.dept-group{margin-bottom:10px}
+.dept-group h4{font-size:13px;color:var(--ink-soft)}
+.action-card{margin-top:14px;background:var(--paper);border:1px solid var(--seal);border-radius:6px;padding:12px 14px}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.progress-row{display:grid;grid-template-columns:110px 1fr 40px;align-items:center;gap:10px;font-size:12.5px;margin-bottom:6px}
+.table-wrap{overflow-x:auto}
+.cadre-table{border-collapse:collapse;width:100%;font-size:12.5px}
+.cadre-table th,.cadre-table td{border-bottom:1px solid var(--paper-line);padding:6px 8px;text-align:left;white-space:nowrap}
+.cadre-table tr.clickable{cursor:pointer}
+.cadre-table tr.clickable:hover{background:#e5d8b8}
+.cadre-table tr.row-selected{background:#f0dcc4;outline:1px solid var(--seal)}
+.resume-card p{font-size:14px}
+.btn{padding:8px 14px;border-radius:4px;border:1px solid var(--ink-soft);background:var(--paper);color:var(--ink);font-size:13px;font-weight:500}
+.btn:hover:not(:disabled){background:var(--paper-line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--seal);color:var(--paper);border-color:var(--seal-dark);font-weight:700}
+.btn-primary:hover:not(:disabled){background:var(--seal-dark)}
+.btn-danger{background:#fff;color:var(--seal);border-color:var(--seal);font-weight:700}
+.btn-ghost{background:transparent;border-style:dashed}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-gold{background:var(--gold);color:var(--paper);border-color:#8a6e26;font-weight:700}
+.btn-gold:hover:not(:disabled){background:#8a6e26}
+.bottom-bar{position:sticky;bottom:0;display:flex;gap:10px;justify-content:center;padding:12px;background:linear-gradient(0deg,var(--paper),rgba(239,231,211,.85));border-top:2px solid var(--paper-line)}
+.footer-note{text-align:center;font-size:11px;color:var(--ink-soft);padding:8px 20px 18px}
+.overlay{position:fixed;inset:0;background:rgba(20,15,8,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.start-card,.ending-card{background:var(--paper);border:3px double var(--seal-dark);border-radius:8px;padding:32px 36px;max-width:520px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.start-card h1{font-size:26px}
+.start-card p{font-size:13.5px;color:var(--ink-soft);margin:6px 0}
+.start-actions{margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.ending-card h2{color:var(--seal);font-size:22px}
+.ending-card p{font-size:14px;margin:12px 0 20px}
+#stampOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1100}
+.stamp-big{font-family:'Noto Serif SC',serif;font-weight:900;color:var(--seal);border:6px double var(--seal);padding:22px 38px;border-radius:10px;transform:rotate(-10deg) scale(.4);opacity:0;animation:stampIn 1.5s cubic-bezier(.2,1.6,.4,1) forwards;background:rgba(239,231,211,.9);font-size:clamp(18px,3.6vw,34px);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+@keyframes stampIn{0%{transform:rotate(-25deg) scale(2.4);opacity:0}35%{transform:rotate(-8deg) scale(1);opacity:1}78%{opacity:1}100%{opacity:0;transform:rotate(-8deg) scale(1)}}
+#eventAnimOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1090;background:rgba(20,15,8,.08)}
+.event-anim{font-family:'Noto Serif SC',serif;font-weight:900;font-size:clamp(28px,6vw,64px);padding:26px 48px;border:4px double var(--seal);background:rgba(239,231,211,.94);box-shadow:0 14px 40px rgba(0,0,0,.3);text-align:center;animation:eventIn 1.6s ease forwards}
+.event-anim-mark{font-size:.7em;margin-bottom:8px}
+.event-anim.natural{animation:eventShake 1.6s ease forwards}
+.event-anim.tragic{color:#55483a}
+.event-anim.positive{color:var(--jade);border-color:var(--jade)}
+@keyframes eventIn{0%{opacity:0;transform:scale(.65) translateY(20px)}35%{opacity:1;transform:scale(1.04) translateY(0)}100%{opacity:0;transform:scale(1) translateY(-12px)}}
+@keyframes eventShake{0%{opacity:0;transform:scale(.8)}20%{opacity:1;transform:translateX(-5px)}28%{transform:translateX(5px)}36%{transform:translateX(-4px)}50%{transform:scale(1)}100%{opacity:0;transform:translateY(-10px)}}
+.toast{position:fixed;left:50%;bottom:70px;transform:translate(-50%,20px);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:20px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:1200}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+#eventModal{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;z-index:1050;pointer-events:none}
+#eventModal.active{display:flex}
+#eventModal .modal-backdrop{position:absolute;inset:0;background:rgba(20,15,8,.45);pointer-events:auto}
+#eventModal .modal-box{position:relative;background:var(--paper);border:3px double var(--seal-dark);border-radius:8px;padding:28px 32px;max-width:540px;width:92%;max-height:80vh;overflow-y:auto;pointer-events:auto;box-shadow:0 16px 48px rgba(0,0,0,.5);animation:modalIn .32s ease both}
+@keyframes modalIn{0%{opacity:0;transform:scale(.92) translateY(18px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+#eventModal .modal-box h3{font-size:20px;color:var(--seal-dark);border-bottom:2px solid var(--paper-line);padding-bottom:8px;margin-bottom:12px}
+#eventModal .modal-box .modal-desc{font-size:14px;color:var(--ink-soft);margin-bottom:16px;line-height:1.6}
+#eventModal .modal-box .modal-choices{display:flex;flex-direction:column;gap:8px}
+#eventModal .modal-box .modal-choice-btn{text-align:left;padding:10px 14px;border:1px solid var(--paper-line);border-radius:6px;background:var(--paper-2);font-size:13px;transition:background .15s}
+#eventModal .modal-box .modal-choice-btn:hover{background:#d7c69f}
+#eventModal .modal-box .modal-choice-btn .effects{font-size:11px;color:var(--ink-soft);margin-top:3px}
+#eventModal .modal-box .modal-hint{font-size:12px;color:var(--seal);margin-top:14px;padding-top:10px;border-top:1px dashed var(--paper-line);text-align:center}
+@media (max-width:960px){.layout{grid-template-columns:1fr;grid-template-rows:auto auto auto}.side-nav{grid-column:1;grid-row:1;grid-template-columns:repeat(2,minmax(0,1fr));padding-bottom:4px}.content{grid-column:1;grid-row:2}.log-feed{grid-column:1;grid-row:3;max-height:260px}#eventModal .modal-box{max-width:96%;padding:20px 16px}}
+@keyframes cardRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulseWarn{0%,100%{box-shadow:0 0 0 rgba(166,40,30,0)}50%{box-shadow:0 0 0 5px rgba(166,40,30,.12)}}
+@keyframes shakeSoft{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+@keyframes energyPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.event-choice,.mini-card,.nav-btn{animation:cardRise .28s ease both}
+.emergency-banner{animation:pulseWarn 1.8s ease-in-out infinite}
+.energy-chip{border-color:var(--gold);background:#f6eed9;animation:energyPulse 2s ease-in-out infinite}
+.natural-disaster{border-color:#6d5740!important;background:#eadfca!important}
+.emotion-event{border-color:#8b6f50!important;background:#f2e6d2!important}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.work-task{background:var(--paper);border:1px solid var(--paper-line);border-radius:6px;padding:12px}
+.work-task.high{border-color:var(--seal)}
+.work-task h4{font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.task-meta{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;font-size:12px}
+.task-tag{padding:3px 7px;border-radius:10px;background:var(--paper-2);border:1px solid var(--paper-line)}
+.task-tag.danger{color:var(--seal);border-color:var(--seal)}
+.dark-ref{background:#0b0f18;color:#d9deea;border:1px solid #202a40;border-radius:8px;padding:12px}
+.dark-ref .task-tag{background:#121a29;border-color:#25324a;color:#9eabd0}
+.money-positive{color:var(--jade);font-weight:700}.money-negative{color:var(--seal);font-weight:700}
+.promotion-quick{background:var(--gold);color:#fff;border-color:#8a6e26;font-weight:700;padding:8px 18px;border-radius:20px}
+.promotion-quick:hover:not(:disabled){background:#8a6e26}
+.promotion-quick:disabled{opacity:.5;cursor:not-allowed}
+.timeline{display:flex;flex-direction:column;gap:4px;padding:4px 0}
+.timeline-item{display:flex;align-items:baseline;gap:12px;padding:4px 0;border-bottom:1px dashed var(--paper-line);font-size:13px}
+.timeline-item .yr{font-weight:700;color:var(--seal-dark);min-width:48px}
+.timeline-item b{font-weight:700}
+.timeline-item .muted{font-size:11px}
+.cond-pass{color:var(--jade);font-weight:700}
+.cond-fail{color:var(--seal);font-weight:700}
+.cond-card{padding:10px 14px;border-radius:6px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;background:var(--paper);border-left:4px solid var(--paper-line)}
+.cond-card.pass{border-left-color:var(--jade)}
+.cond-card.fail{border-left-color:var(--seal)}
+
+/* ===== Android APK / mobile optimization ===== */
+body{padding-bottom:72px;overscroll-behavior-y:none}
+.topbar{position:sticky;top:0;z-index:50}
+.brand h1{font-size:20px}
+.brand h1 span{font-size:11px}
+.layout{padding:10px 10px;display:block;max-width:900px}
+.side-nav{position:sticky;top:67px;z-index:45;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;background:var(--paper);padding:6px 0}
+.nav-title{display:none}
+.nav-btn{padding:8px 4px;font-size:11px;min-height:38px}
+.log-feed{display:none}
+.content{display:flex;gap:10px}
+.card,.panel{padding:11px 12px}
+.meters-card{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.grid-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mini-card{padding:9px}
+.btn{min-height:40px}
+.bottom-bar{position:fixed;left:0;right:0;bottom:0;z-index:80;padding:8px 10px;gap:6px;background:rgba(239,231,211,.96);backdrop-filter:blur(8px)}
+.bottom-bar .btn{flex:1}
+.start-card,.ending-card{padding:24px 18px;max-height:90vh;overflow:auto}
+#eventModal .modal-box{width:94%;max-height:82vh;padding:20px 16px}
+.cadre-table{font-size:11px}
+.cadre-table th,.cadre-table td{padding:6px 5px}
+.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mobile-hero{border:2px solid var(--seal);background:linear-gradient(135deg,#f4e4d8,#efe7d3);padding:12px;border-radius:8px;margin-bottom:10px}
+.achievement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.achievement{border:1px solid var(--paper-line);border-radius:7px;padding:10px;background:var(--paper)}
+.achievement.locked{opacity:.45;filter:grayscale(.7)}
+.achievement b{display:block;margin-bottom:4px}
+@media(max-width:520px){
+  .brand .tagline{display:none}
+  .grid-cards,.achievement-grid{grid-template-columns:1fr}
+  .side-nav{grid-template-columns:repeat(4,1fr)}
+  .nav-btn{font-size:10px}
+  .chip{padding:4px 7px}
+  .progress-row{grid-template-columns:80px 1fr 35px}
+}
+
+
+/* ===== 关键人物关系网 / 人事投票系统 ===== */
+.key-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}
+.key-person{background:var(--paper);border:1px solid var(--paper-line);border-radius:7px;padding:11px}
+.key-person h4{display:flex;justify-content:space-between;gap:6px}.key-role{color:var(--seal-dark);font-size:12px}
+.relation-bar{height:7px;background:var(--paper-2);border:1px solid var(--paper-line);border-radius:6px;overflow:hidden;margin-top:5px}.relation-bar>i{display:block;height:100%;background:var(--jade)}
+.vote-card{border:2px solid var(--gold);background:#f7efd9;border-radius:8px;padding:12px}.vote-row{display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px dashed var(--paper-line)}
+.vote-badge{min-width:44px;text-align:center;border-radius:12px;padding:3px 7px;font-size:11px;background:var(--paper-2);border:1px solid var(--paper-line)}
+.vote-yes{color:var(--jade);font-weight:800}.vote-no{color:var(--seal);font-weight:800}.vote-abstain{color:var(--ink-soft)}
+@media(max-width:520px){.key-grid{grid-template-columns:1fr}.vote-row{font-size:12px}}
+.eco-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px}.eco-card{background:var(--paper);border:1px solid var(--paper-line);border-radius:7px;padding:12px}.eco-card h4{margin-bottom:5px}.tag-faction{display:inline-block;padding:2px 7px;border-radius:10px;border:1px solid var(--paper-line);font-size:11px;margin:2px}.score-big{font-size:26px;font-weight:800;color:var(--seal-dark)}.timeline-item{border-left:3px solid var(--gold);padding:7px 10px;margin:7px 0;background:var(--paper)}
+</style>
+</head>
+<body>
+
+<div id="app">
+<header class="topbar">
+<div class="brand"><h1>仕途 <span>· 中国公务员晋升模拟器 V5</span></h1><p class="tagline">架空人物与事件 · 政治经营沙盒</p></div>
+<div class="seal"><div class="seal-text" id="sealText">科员<br>2026</div></div>
+</header>
+<div class="layout">
+<nav class="side-nav" id="sideNav"></nav>
+<main class="content">
+<section class="dashboard" id="dashboard"></section>
+<section class="panel" id="panel"></section>
+</main>
+<aside class="log-feed"><h3>动态记录</h3><div id="logList" class="log-list"></div></aside>
+</div>
+<footer class="bottom-bar">
+<button class="btn btn-primary" data-act="doEndYear">推进三个月 ➜</button>
+<button class="btn" data-act="saveGame">保存游戏</button>
+<button class="btn" data-act="triggerLoad">读取存档</button>
+<input type="file" id="loadInput" accept=".json" style="display:none">
+</footer>
+<p class="footer-note">本作采用历史时期背景与架空人物；职位体系为游戏化抽象，不等同于现实任免规则。</p>
+</div>
+
+<div id="eventModal"><div class="modal-backdrop" data-act="closeEventModal"></div><div class="modal-box"><h3 id="eventModalTitle">事件</h3><div class="modal-desc" id="eventModalDesc"></div><div class="modal-choices" id="eventModalChoices"></div><div class="modal-hint">💡 可在处理事件的同时切换导航查看其他信息。</div></div></div>
+
+<div id="startScreen" class="overlay">
+<div class="start-card">
+<h1>《仕途：中国公务员晋升模拟器》V5.0</h1>
+<p>Android 离线版 · 人事 / 经济 / 民生 / 项目 / 常委 / 突发事件沙盒</p>
+<p>从基层公务员开始，用数十年的职业生涯争取进入最高职位。</p>
+<p>游戏人物、事件和组织均为架空；现实中的干部任用由法律法规和组织程序决定。</p>
+<p class="muted">提示：游戏不会自动升官。你从1982年22岁起步；具体职务、任职年限、组织考察、常委会和党代会共同决定仕途。</p>
+<div class="start-actions">
+<label class="muted">姓名 <input id="startName" value="玩家" maxlength="8" style="padding:7px 9px;border:1px solid var(--paper-line);background:var(--paper);border-radius:4px;"></label>
+<label class="muted">起步路线 <select id="startPath" style="padding:7px 9px;border:1px solid var(--paper-line);background:var(--paper);border-radius:4px;">
+<option value="grassroots">基层治理</option><option value="organization">组织人事</option><option value="economy">经济建设</option><option value="policy">政策研究</option>
+</select></label>
+</div>
+<div class="start-actions"><button class="btn btn-primary" data-act="startGame">开始新的职业生涯</button><button class="btn" data-act="triggerLoad">读取已有存档</button></div>
+</div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+// ======================= 核心数据 =======================
+const RANKS=[["办事员",20],["科员",22],["副科级",27],["正科级",31],["副处级",36],["正处级",40],["副厅级",45],["正厅级",49],["副部级",54],["正部级",57],["副国级",60],["正国级",63],["总书记",63]];
+const OFFICE_CHAINS={0:["办事员"],1:["科员"],2:["乡镇副职","县直副职"],3:["乡镇长","乡镇党委书记","县直局长"],4:["副县长","县委常委","县委常委·组织部长","县委常委·政法委书记"],5:["县委副书记","县长","县委书记","市委常委"],6:["市委常委","副市长","市委副书记","副厅级部门副职"],7:["市委书记","市长","省委常委","正厅级部门正职"],8:["省委常委·副职","副省长","中央部委副职"],9:["省委书记","省长","中央部委正职"],10:["国务院副职","全国人大/政协副职"],11:["国务院主要负责人","全国人大/政协主要负责人"],12:["总书记"]};
+const DEPARTMENTS={"党委核心":["组织部","宣传部","统战部","政法委","纪委监委","党委办公室","政策研究室"],"政府核心":["政府办公室","公安局","财政局","发展改革局","人力资源和社会保障局","应急管理局"],"青年与群团":["共青团","妇联","工会"],"地方主政":["乡镇政府","街道办事处","县政府","市政府","省委省政府"],"中央机关":["中央办公厅","中央组织部","国务院办公厅","国家发展改革部门"]};
+const DEGREE_LEVELS={"高中/中专":1,"大专":2,"本科":3,"硕士":4,"博士":5};
+const DEGREE_BONUS={"高中/中专":0,"大专":2,"本科":5,"硕士":8,"博士":10};
+const WORK_TASKS=[
+{id:"urgent",icon:"📣",name:"上级紧急调研",desc:"上级领导临时调研，须紧急准备汇报材料",priority:"紧急重要",energy:18,risk:10,performance:5,democratic:1},
+{id:"plan",icon:"📊",name:"年度工作规划",desc:"制定下一年度重点工作计划方案",priority:"重要不紧急",energy:15,risk:5,performance:4,democratic:2},
+{id:"project",icon:"🏗️",name:"重大工程督查",desc:"深入工程现场督导进度",priority:"重要不紧急",energy:12,risk:5,performance:4,democratic:1},
+{id:"policy",icon:"📋",name:"政策文件起草",desc:"起草本地重要政策文件",priority:"重要不紧急",energy:10,risk:3,performance:3,democratic:1},
+{id:"meeting",icon:"🤝",name:"班子协调会议",desc:"主持常委扩大会议，协调重要工作",priority:"重要不紧急",energy:8,risk:3,performance:2,democratic:3},
+{id:"approval",icon:"📞",name:"文件会签批复",desc:"处理积压文件会签",priority:"紧急不重要",energy:6,risk:1,performance:1,democratic:0},
+{id:"routine",icon:"🗓️",name:"例会主持发言",desc:"主持日常工作例会",priority:"紧急不重要",energy:5,risk:0,performance:1,democratic:1},
+{id:"ceremony",icon:"🏅",name:"参加颁奖典礼",desc:"出席本地荣誉表彰活动",priority:"不紧急不重要",energy:3,risk:0,performance:0,democratic:1},
+{id:"media",icon:"📰",name:"接受媒体采访",desc:"配合记者采访宣传",priority:"不紧急不重要",energy:4,risk:5,performance:1,democratic:2}
+];
+const STORY_EVENTS=[
+{title:"突发群访事件",type:"moving",desc:"群众集中表达诉求，现场情绪紧张，需要耐心沟通和及时回应。",choices:[["面对群众并公开说明",{public_trust:7,democratic_score:4,performance:2,energy:-8}],["立即组织分流接访",{stability:5,public_trust:4,performance:1,energy:-6}],["回避现场",{public_trust:-8,democratic_score:-3,reputation:-3,energy:-2}]]},
+{title:"令人悲痛的事故",type:"tragic",desc:"一起事故造成伤亡。善后、问责、信息公开与心理安抚同时展开，这成为本年度的重要工作记忆。",choices:[["彻查责任并公开说明",{corruption_risk:-7,reputation:4,public_trust:6,performance:-2,democratic_score:3,energy:-10}],["优先善后救助",{fiscal:-7,public_trust:8,stability:4,democratic_score:2,energy:-9}],["压下舆情",{media_attention:-5,public_trust:-9,corruption_risk:10,reputation:-6,democratic_score:-5,energy:-4}]]},
+{title:"基层暖心故事",type:"positive",desc:"普通工作人员帮助群众解决难题，事迹在当地传播，形成温暖的社会记忆。",choices:[["把经验制度化",{public_trust:6,reputation:4,performance:3,democratic_score:3,energy:4}],["不炒作，做好保障",{stability:4,integrity:2,public_trust:4,energy:6}]]},
+{title:"年度重点工作失误",type:"tragic",desc:"一项年度重点工作推进不及预期，上级通报指出责任落实不到位，你需要承担政绩扣分。",choices:[["主动复盘整改",{performance:-5,democratic_score:-1,reputation:-1,energy:-7}],["补齐短板追回进度",{performance:-2,democratic_score:1,public_trust:2,energy:-12}],["推诿责任",{performance:-8,democratic_score:-5,reputation:-5,corruption_risk:4,energy:-3}]]},
+{title:"项目延期问责",type:"tragic",desc:"重点项目发生延期，相关责任链被重新核查，年度政绩受到扣减。",choices:[["承担责任并督促整改",{performance:-4,reputation:1,corruption_risk:-3,energy:-9}],["调整方案降低损失",{performance:-2,public_trust:2,stability:2,energy:-8}]]}
+];
+const PROJECT_TEMPLATES=[
+{name:"县域产业园",cost:24,duration:3,gdp:7,jobs:8,livelihood:2,fiscal:5,debt:12,environment:-3,risk:17},
+{name:"县级综合医院",cost:14,duration:2,gdp:2,jobs:3,livelihood:12,fiscal:1,debt:5,environment:1,risk:9},
+{name:"城市快速路",cost:30,duration:4,gdp:8,jobs:6,livelihood:7,fiscal:4,debt:16,environment:-2,risk:18},
+{name:"义务教育扩容",cost:12,duration:2,gdp:1,jobs:2,livelihood:11,fiscal:1,debt:4,environment:1,risk:8},
+{name:"保障性住房",cost:20,duration:3,gdp:2,jobs:4,livelihood:14,fiscal:0,debt:8,environment:0,risk:11},
+{name:"水利防洪工程",cost:22,duration:3,gdp:5,jobs:5,livelihood:8,fiscal:3,debt:10,environment:3,risk:13}
+];
+const STANDING_COMMITTEE_SEATS=["党委书记","政府主要负责人","人大主要负责人","政协主要负责人","纪委书记","组织部长","宣传部长","政法委书记","统战部长","党委办公室主任","其他常委"];
+const NPC_NAMES=["李明","王强","张伟","陈杰","赵峰","刘洋","周宁","孙涛","黄磊","杨晨","徐凯","吴昊","何涛","林峰","郑宇","马俊","高峰","许宁","周涛","韩伟"];
+const FACTIONS=["务实派","改革派","发展派","稳健派","中间派"];
+const KEY_FIGURE_TEMPLATES=[
+{name:"周启明",role:"县委书记",faction:"稳健派",power:88,relation:54,trust:58,stance:5,priority:"班子总协调"},
+{name:"林若川",role:"县长",faction:"发展派",power:82,relation:57,trust:61,stance:12,priority:"经济与项目"},
+{name:"赵文博",role:"县纪委书记",faction:"稳健派",power:74,relation:50,trust:67,stance:-4,priority:"廉政与程序"},
+{name:"沈静宜",role:"县委组织部长",faction:"务实派",power:79,relation:52,trust:64,stance:6,priority:"干部任用"},
+{name:"韩立群",role:"县委宣传部长",faction:"改革派",power:58,relation:48,trust:52,stance:8,priority:"舆情与改革"},
+{name:"顾承远",role:"县委政法委书记",faction:"稳健派",power:68,relation:46,trust:55,stance:-6,priority:"稳定与安全"},
+{name:"陈思远",role:"县委统战部长",faction:"中间派",power:55,relation:50,trust:50,stance:0,priority:"协调与团结"}
+];
+const VOTE_TOPICS=[
+{id:"personnel",title:"干部人事任用",desc:"研究一名重要干部的任用方案。",base:48,cost:4,reward:"影响组织信任与人事网络"},
+{id:"project",title:"重大项目立项",desc:"是否推进高投入、带债务的重大项目。",base:50,cost:3,reward:"可能提高政绩，但增加债务与风险"},
+{id:"reform",title:"重点改革方案",desc:"推进一项涉及多个部门的制度改革。",base:46,cost:5,reward:"提高政策声望与政治资本"},
+{id:"budget",title:"年度财政预算",desc:"在民生、发展和偿债之间进行预算取舍。",base:52,cost:2,reward:"影响财政、民生与班子评价"}
+];
+
+const UPPER_LEADERS=[
+{name:"顾远山",role:"市委书记",style:"重实绩",weight:86,trust:50,stance:8},
+{name:"沈怀安",role:"市委组织部长",style:"重程序",weight:78,trust:50,stance:3},
+{name:"唐致远",role:"省委组织部门领导",style:"重综合评价",weight:92,trust:50,stance:5},
+{name:"陆景川",role:"省委主要负责人",style:"重发展与稳定",weight:95,trust:50,stance:7}
+];
+const POLICY_ISSUES=[
+{id:"growth",name:"高质量发展",desc:"产业升级、营商环境与财政可持续",bonus:"发展派",risk:8},
+{id:"livelihood",name:"民生优先",desc:"教育、医疗、住房与就业",bonus:"务实派",risk:3},
+{id:"reform",name:"治理改革",desc:"制度建设、数字治理与流程优化",bonus:"改革派",risk:7},
+{id:"stability",name:"风险防控",desc:"安全生产、基层矛盾与应急体系",bonus:"稳健派",risk:2}
+];
+const FACTION_EVENTS=[
+{title:"形成工作联盟",desc:"长期共同推动项目的几名干部开始形成稳定合作圈。",faction:"发展派"},
+{title:"改革共识形成",desc:"多名干部在制度改革上逐渐形成共同立场。",faction:"改革派"},
+{title:"稳健联盟强化",desc:"面对风险事件，班子成员倾向于更加重视程序与稳定。",faction:"稳健派"}
+];
+const RANDOM_EVENTS=[["重点企业落地","一家重点企业决定扩大投资。",{gdp:4,employment:3,enterprise:5,performance:2}],["财政收支吃紧","财政收入低于预期，必须在发展与偿债间取舍。",{fiscal:-7,public_trust:-2,performance:-1}],["干部交流","上级启动干部交流，你面临新的岗位机会。",{influence:2,reputation:1}],["审计提醒","审计部门指出项目程序瑕疵，需要补手续并整改。",{corruption_risk:6,performance:-1}],["群众来信集中","一批群众诉求集中反映到党委政府。",{public_trust:-4,public_support:-3}],["先进经验推广","你的治理经验被上级部门关注。",{reputation:4,performance:3,central_support:3}],["招商引资竞争","周边地区推出优惠政策，招商压力增加。",{enterprise:-3,gdp:-2,performance:-1}],["干部家庭问题","一名关键干部的家庭事务引发组织关注，你需要稳妥处理。",{committee_conflicts:4,political_capital:-2}],["舆情升温","地方决策受到媒体和群众持续关注。",{media_attention:8,public_trust:-3}],["年度重点工作调整","上级临时调整考核重点，原有工作节奏被打乱。",{performance:-2,political_judgment:2}]];
+const RICH_EVENTS=[
+{title:"山洪突袭",type:"natural",desc:"连续强降雨引发山洪，乡村道路和低洼地区受灾。",choices:[["连夜转移群众",{stability:5,public_trust:8,performance:5,energy:-10}],["先保重点项目",{gdp:2,public_trust:-6,performance:-2,energy:-4}],["公开灾情并统筹救援",{public_trust:10,media_attention:3,reputation:4,energy:-8}]]},
+{title:"地震灾情",type:"natural",desc:"突发地震造成房屋受损，你需要在救援、安置和恢复之间分配资源。",choices:[["救人优先",{fiscal:-8,public_trust:12,stability:6,performance:6,energy:-12}],["统一安置",{fiscal:-6,housing:8,stability:8,public_trust:7,energy:-9}],["边救援边重建",{fiscal:-10,gdp:3,public_trust:8,performance:7,energy:-11}]]},
+{title:"温暖一幕",type:"moving",desc:"基层干部和群众自发互助，一段普通人的善意让全城受到鼓舞。",choices:[["主动记录并传播",{public_trust:6,public_support:7,reputation:5,energy:4}],["默默做好保障",{stability:5,integrity:2,public_trust:4,energy:6}]]},
+{title:"令人悲痛的事故",type:"tragic",desc:"一起事故造成伤亡，善后、问责和心理安抚同时展开。",choices:[["彻查责任并公开说明",{corruption_risk:-6,reputation:4,public_trust:5,performance:-2,energy:-10}],["优先善后救助",{fiscal:-7,public_trust:8,stability:4,energy:-9}],["压下舆情",{media_attention:-5,public_trust:-8,corruption_risk:8,reputation:-5,energy:-4}]]},
+{title:"真能量时刻",type:"positive",desc:"一名普通工作人员坚守岗位、无私帮助群众，事迹被群众自发传播。",choices:[["树立典型但不炒作",{public_trust:7,reputation:5,public_support:5,energy:5}],["完善制度让善意可持续",{stability:5,performance:4,public_support:4,energy:2}]]},
+{title:"群众送来的热饭",type:"moving",desc:"连续加班期间，群众送来简单饭菜表达感谢，基层团队士气明显提升。",choices:[["把感谢化成行动",{energy:8,performance:3,public_trust:5}],["组织团队轮休",{energy:12,stability:3,performance:1}]]}
+];
+const SPECIAL_EVENTS=[
+{title:"重要人事议题",desc:"组织部门征求你对一名干部使用意见。",choices:[["坚持程序优先","依法依规核查，短期慢一些，但组织信任上升。",{reputation:3,integrity:2,committee_support:2}],["优先使用能干干部","看重实绩，可能提高效率，也会增加人事博弈。",{performance:4,influence:3,committee_conflicts:3}],["暂缓表态","避免过早卷入竞争，政治风险下降。",{political_judgment:2,political_capital:2}]]},
+{title:"重大项目决策",desc:"一个大型项目摆在面前，发展与风险需要权衡。",choices:[["谨慎论证","增长慢一点，但债务和廉政风险较低。",{gdp:2,debt:-4,reputation:3}],["快速推进","抓住窗口期，政绩提升明显。",{gdp:6,employment:4,performance:5,debt:8,corruption_risk:3}],["先试点后推广","牺牲部分速度换取可控风险。",{gdp:3,performance:3,political_judgment:3}]]},
+{title:"重大舆情处置",desc:"一项政策引发争议，需要决定沟通与整改方式。",choices:[["公开说明并整改","信任恢复较快，但短期承认问题。",{public_trust:6,media_attention:-5,reputation:2}],["加强宣传解释","能降低部分误解，但若事实不足会适得其反。",{media_attention:-3,public_support:3}],["迅速调整政策","牺牲部分既有政绩换取稳定。",{stability:5,performance:-2,public_trust:5}]]}
+];
+const EMERGENCY_TYPES=[{name:"重大公共安全事件",description:"发生重大公共安全事件，需要跨部门处置。",pressure:14},{name:"严重自然灾害",description:"灾害造成基础设施和民生压力。",pressure:12},{name:"重大舆情事件",description:"政策争议扩散，需要信息公开与整改。",pressure:11},{name:"重大公共卫生事件",description:"医疗和基层治理压力陡增。",pressure:13},{name:"重大经济冲击",description:"重点企业经营困难，就业承压。",pressure:10},{name:"重大生产安全事故",description:"事故造成伤亡和问责压力，必须迅速处置。",pressure:16},{name:"群体性矛盾升级",description:"长期积累的基层矛盾集中爆发。",pressure:15}];
+
+function clamp(v,lo=0,hi=100){return Math.max(lo,Math.min(hi,v))}
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function randFloat(a,b){return Math.random()*(b-a)+a}
+function choice(a){return a[randInt(0,a.length-1)]}
+function weightedChoice(items,weights){const t=weights.reduce((a,b)=>a+b,0);let r=Math.random()*t;for(let i=0;i<items.length;i++){r-=weights[i];if(r<=0)return items[i]}return items[items.length-1]}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function currentRank(){return G.player.rank_index}
+function rankName(i=currentRank()){return RANKS[i][0]}
+function currentOffice(){return G.player.office||OFFICE_CHAINS[currentRank()][0]}
+function congressNumber(y){return 12+Math.floor((y-1982)/5)}
+function congressEligible(){return currentRank()>=7}
+function officePower(){const idx=OFFICE_CHAINS[currentRank()].indexOf(currentOffice());return Math.max(0,idx)*4}
+function calcPower(){const p=G.player;let v=currentRank()*7+officePower()+p.influence*.28+p.political_capital*.22+p.reputation*.18+p.performance*.12+p.committee_influence*.10;if(p.central_status==="中央候补委员")v+=8;if(p.central_status==="中央委员")v+=14;if(p.central_status==="政治局委员")v+=24;if(p.central_status==="政治局常委")v+=35;return Math.round(clamp(v,0,100))}
+
+const ACHIEVEMENTS=[
+{id:"first_promo",icon:"📜",name:"初入仕途",desc:"完成第一次组织任命",ok:()=>G.player.appointment_history.length>=1},
+{id:"hard_worker",icon:"⚡",name:"勤勉不怠",desc:"精力曾达到90以上并完成工作任务",ok:()=>G.history.some(x=>x.includes("完成「")&&G.player.energy>=90)},
+{id:"people_first",icon:"🤝",name:"民生为先",desc:"公众信任达到85",ok:()=>G.public_trust>=85},
+{id:"project_master",icon:"🏗️",name:"项目能手",desc:"完成3个重大项目",ok:()=>G.player.major_project_experience>=3},
+{id:"clean",icon:"🛡️",name:"清正履职",desc:"廉政风险低于10且廉洁度达到90",ok:()=>G.player.corruption_risk<10&&G.player.integrity>=90},
+{id:"scholar",icon:"🎓",name:"知行合一",desc:"取得博士学历",ok:()=>G.player.degree==="博士"},
+{id:"long_service",icon:"⏳",name:"长期主义",desc:"年龄达到50岁",ok:()=>G.player.age>=50},
+{id:"central",icon:"🏛️",name:"中央舞台",desc:"获得中央委员或更高身份",ok:()=>["中央委员","政治局委员","政治局常委"].includes(G.player.central_status)},
+{id:"top_rank",icon:"⭐",name:"时代答卷",desc:"达到正部级",ok:()=>G.player.rank_index>=9},
+{id:"vote_master",icon:"🗳️",name:"协商达成",desc:"成功推动3项常委会议案通过",ok:()=>G.vote_history.filter(x=>x.passed).length>=3}
+];
+function checkAchievements(){
+  if(!Array.isArray(G.achievements))G.achievements=[];
+  if(!Array.isArray(G.key_figures))G.key_figures=[];
+  if(!Array.isArray(G.vote_history))G.vote_history=[];
+  if(G.active_vote===undefined)G.active_vote=null;
+  for(const a of ACHIEVEMENTS){
+    if(!G.achievements.includes(a.id)&&a.ok()){
+      G.achievements.push(a.id);
+      log(`【成就解锁】${a.icon} ${a.name}：${a.desc}`);
+      showStampAnimation(`成就解锁\n${a.name}`);
+    }
+  }
+}
+function renderAchievements(){
+  const unlocked=new Set(G.achievements||[]);
+  let h=panelHead("生涯成就","长期经营不仅为了晋升，也可以完成不同治理路线的生涯挑战。");
+  h+=`<div class="mobile-hero"><b>已解锁 ${unlocked.size}/${ACHIEVEMENTS.length}</b><p class="muted">成就不会直接改变晋升结果，只记录你的治理风格与生涯里程碑。</p></div>`;
+  h+=`<div class="achievement-grid">${ACHIEVEMENTS.map(a=>`<div class="achievement ${unlocked.has(a.id)?"":"locked"}"><b>${a.icon} ${a.name}</b><span class="muted">${a.desc}</span><div class="hint">${unlocked.has(a.id)?"已解锁":"待完成"}</div></div>`).join("")}</div>`;
+  return h;
+}
+function newPlayer(){return{name:"玩家",age:22,year:1982,month:1,rank_index:1,office:"科员",department:"乡镇政府",region_level:"乡镇",degree:"本科",ability:65,political_judgment:50,execution:65,integrity:85,reputation:50,influence:10,energy:100,public_support:60,political_capital:20,performance:60,democratic_score:60,corruption_risk:0,wealth:5,personal_cash:12,company:{exists:false,name:"",capital:0,profit:0,legal:false},properties:[],discipline_investigation:false,years_in_post:0,grassroots_years:0,exchange_experience:0,major_project_experience:0,annual_assessment:"称职",central_status:"未进入中央委员会",last_congress:0,congress_count:0,congress_eligible:false,appointment_history:[],leadership_style:"务实",policy_focus:"民生优先",mentor_name:"",career_reputation:50}}
+function newGame(){return{player:newPlayer(),gdp:100,fiscal:70,debt:30,employment:92,income:70,housing:65,medical:70,education:70,environment:70,stability:85,inflation:35,enterprise:60,central_support:50,public_trust:60,media_attention:20,cadres:[],projects:[],history:[],timeline:[],events:[],achievements:[],committee_support:50,committee_influence:20,committee_conflicts:0,committee_members:[],key_figures:[],vote_history:[],active_vote:null,factions:{},political_network:[],upper_reviews:[],hidden_lines:[],policy_reputation:50,media_sentiment:50,organizational_trust:50,coalition_stability:50,mentor:null,successor_candidates:[],emergency_active:false,emergency_name:"",emergency_description:"",emergency_pressure:0,pending_event:null,gameOver:false}}
+var G=newGame();var UI={view:"overview",selectedCadre:null,selectedDept:null};
+function log(t){G.history.push(`${G.player.year}年：${t}`)}
+function normalize(){ensureCommittee();["gdp","fiscal","employment","income","housing","medical","education","environment","stability","inflation","enterprise","central_support","public_trust","media_attention","committee_support","committee_influence","committee_conflicts"].forEach(k=>G[k]=clamp(G[k]));G.debt=Math.max(0,G.debt);G.policy_reputation=clamp(G.policy_reputation);G.media_sentiment=clamp(G.media_sentiment);G.organizational_trust=clamp(G.organizational_trust);G.coalition_stability=clamp(G.coalition_stability);["ability","political_judgment","execution","integrity","reputation","influence","energy","public_support","political_capital","performance","corruption_risk","wealth","democratic_score","personal_cash"].forEach(k=>G.player[k]=clamp(G.player[k]))}
+function applyEffects(effects){for(const[k,v]of Object.entries(effects)){if(k==="performance"||k==="influence"||k==="political_capital"||k==="corruption_risk"||k==="reputation"||k==="public_support"||k==="integrity"||k==="political_judgment"||k==="ability"||k==="execution"||k==="wealth"||k==="democratic_score"||k==="personal_cash")G.player[k]+=v;else if(Object.prototype.hasOwnProperty.call(G,k))G[k]+=v}normalize()}
+function committeeUnlocked(){return currentRank()>=4}
+function generateCadres(count){const s=G.cadres.length;for(let i=0;i<count;i++){const name=NPC_NAMES[(s+i)%NPC_NAMES.length];const ri=randInt(1,Math.min(7,currentRank()+1));const rank=RANKS[ri][0];const office=choice(OFFICE_CHAINS[ri]);G.cadres.push({name,department:choice(Object.values(DEPARTMENTS).flat()),rank,rank_index:ri,office,age:randInt(25,55),degree:weightedChoice(Object.keys(DEGREE_LEVELS),[3,8,55,25,9]),ability:randInt(55,90),loyalty:randInt(35,85),integrity:randInt(55,95),reputation:randInt(35,85),influence:randInt(10,55),relation:randInt(30,70),faction:choice(FACTIONS),performance:randInt(45,85)})}}
+function initGame(){ensurePolitical();ensureKeyFigures();generateCadres(22);log("1982年，你22岁，进入基层公务员队伍。第十二次全国党代会召开，时代背景进入改革开放初期。");log("你可以走基层治理、组织人事、经济建设或政策研究路线；具体职务与行政级别分开计算。");renderAll()}
+function startGame(){const name=(document.getElementById("startName")?.value||"玩家").trim().slice(0,8)||"玩家";const path=document.getElementById("startPath")?.value||"grassroots";G=newGame();G.player.name=name;const pathMap={grassroots:{department:"乡镇政府",office:"科员",ability:3,execution:6,public_support:5,performance:3},organization:{department:"组织部",office:"科员",political_judgment:7,influence:4,reputation:2},economy:{department:"发展改革局",office:"科员",ability:6,performance:5,reputation:2},policy:{department:"政策研究室",office:"科员",ability:8,political_judgment:6,performance:2}};Object.assign(G.player,pathMap[path]);document.getElementById("startScreen").style.display="none";initGame();autoSaveAndroid()}
+function selectCadre(i){UI.selectedCadre=i;renderPanel()}
+function pickDept(d){UI.selectedDept=d;renderPanel()}
+function applyTransfer(dept){if(dept===G.player.department){toast("你已经在该部门。");return}const chance=35+G.player.reputation/4+G.player.performance/5+G.player.influence/5+G.player.political_judgment/5;if(randInt(1,100)<=Math.min(94,chance)){G.player.department=dept;G.player.exchange_experience++;G.player.reputation=clamp(G.player.reputation+2);log(`组织批准岗位交流，你调任至${dept}。`)}else log(`你的调任申请未获批准，组织建议继续积累基层/部门经历。`);normalize();renderAll()}
+function doTransfer(){if(!UI.selectedDept){toast("先选择目标部门。");return}applyTransfer(UI.selectedDept);UI.selectedDept=null}
+function cultivateCadre(i){const n=G.cadres[i];if(!n)return;if(G.player.political_capital<3){toast("政治资本不足。");return}G.player.political_capital-=3;n.ability=clamp(n.ability+5);n.performance=clamp(n.performance+5);n.relation=clamp(n.relation+4);log(`你安排${n.name}进入重点培养名单。`);normalize();renderAll()}
+function recommendCadre(i){const n=G.cadres[i];if(!n)return;if(G.player.political_capital<8){toast("政治资本不足。");return}G.player.political_capital-=8;const chance=30+n.performance/3+n.ability/4+G.player.reputation/5+G.player.influence/4;if(randInt(1,100)<=Math.min(95,chance)){n.influence=clamp(n.influence+8);n.relation=clamp(n.relation+10);G.player.influence=clamp(G.player.influence+3);log(`你推荐${n.name}承担更重要职务，组织考察结果较为积极。`)}else{G.player.reputation=clamp(G.player.reputation-2);log(`你推荐${n.name}未形成一致意见，暂缓使用。`)}normalize();renderAll()}
+function improveRelation(i){const n=G.cadres[i];if(!n)return;n.relation=clamp(n.relation+randInt(5,12));G.player.influence=clamp(G.player.influence+1);log(`你与${n.name}沟通协调，关系改善。`);normalize();renderAll()}
+function struggleAction(i,a){const n=G.cadres[i];if(!n)return;if(a===1){n.relation=clamp(n.relation+5);G.stability=clamp(G.stability+3);G.player.performance=clamp(G.player.performance+1);log("你选择协调路线，内部摩擦下降。")}if(a===2){if(G.player.political_capital<5){toast("政治资本不足。");return}G.player.political_capital-=5;const c=45+G.player.reputation/4+G.player.influence/4;if(randInt(1,100)<=Math.min(90,c)){G.player.influence=clamp(G.player.influence+5);G.player.political_capital=clamp(G.player.political_capital+7);log("你成功争取到更多工作支持。")}else{G.committee_conflicts=clamp(G.committee_conflicts+5);log("争取支持效果有限，内部协调压力上升。")}}if(a===3){const b=randInt(3,8);G.player.performance=clamp(G.player.performance+b);G.player.reputation=clamp(G.player.reputation+2);log(`你用实际工作成绩竞争，政绩增加${b}。`)}if(a===4){G.player.political_judgment=clamp(G.player.political_judgment+randInt(1,4));G.player.performance=clamp(G.player.performance+3);G.player.public_support=clamp(G.player.public_support+2);log("你提出政策方案并推动落地，政策判断力提高。")}if(a===5){G.stability=clamp(G.stability+2);G.player.political_capital=clamp(G.player.political_capital+2);log("你暂缓正面冲突，把资源投入实际治理。")}normalize();renderAll()}
+function livelihoodAction(c){const costs={1:8,2:8,3:10,4:6,5:7,6:7};if(!(c in costs))return;if(G.fiscal<costs[c]){toast("财政资金不足。");return}G.fiscal-=costs[c];if(c===1){G.medical+=10;G.public_trust+=3;G.player.public_support+=4}if(c===2){G.education+=10;G.public_trust+=3;G.player.performance+=3}if(c===3){G.housing+=10;G.public_trust+=4;G.player.public_support+=5;G.debt+=3}if(c===4){G.employment+=8;G.income+=4;G.enterprise+=3;G.player.performance+=4}if(c===5){G.public_trust+=5;G.stability+=4;G.player.public_support+=5}if(c===6){G.environment+=10;G.public_trust+=3;G.player.performance+=2}log("民生投入完成，相关公共服务指标改善。");normalize();renderAll()}
+function startProject(i){const t=PROJECT_TEMPLATES[i];if(!t)return;if(G.fiscal<t.cost){toast("财政资金不足。");return}if(t.cost>=25&&currentRank()<3){toast("大型项目需要更高层级协调。");return}G.fiscal-=t.cost;G.debt+=t.debt;G.projects.push({...t,year_started:G.player.year,progress:0});G.player.major_project_experience=(G.player.major_project_experience||0)+1;G.player.performance=clamp(G.player.performance+2);log(`项目《${t.name}》获批开工，进入建设周期。`);normalize();renderAll()}
+function economyAction(c){if(c===1){G.fiscal-=5;G.enterprise+=8;G.employment+=5;G.income+=3;G.gdp+=5;G.player.performance+=4;log("扶持中小企业，企业活力和就业提升。")}if(c===2){G.fiscal-=8;G.debt+=10;G.gdp+=8;G.employment+=4;G.inflation+=3;G.player.performance+=4;log("基础设施投资拉动增长，但债务压力上升。")}if(c===3){G.fiscal-=6;G.income+=6;G.gdp+=3;G.public_trust+=3;G.player.performance+=3;log("减税促消费，居民收入与消费能力提高。")}if(c===4){G.fiscal-=5;G.enterprise+=6;G.gdp+=7;G.employment+=3;G.environment-=2;G.player.performance+=5;log("制造业政策见效，但环境压力增加。")}if(c===5){G.debt=Math.max(0,G.debt-8);G.fiscal+=8;G.gdp-=2;G.public_trust-=2;G.player.performance+=1;log("财政整顿降低债务，短期经济承压。")}normalize();renderAll()}
+function workTask(id){const t=WORK_TASKS.find(x=>x.id===id);if(!t)return;const p=G.player;if(p.energy<t.energy){toast(`精力不足：完成「${t.name}」需要 ${t.energy} 点精力。`);return}p.energy-=t.energy;p.performance+=t.performance;p.democratic_score+=t.democratic;p.reputation+=t.democratic?1:0;if(t.id==="media")G.media_attention+=4;if(t.id==="meeting")G.committee_support+=2;if(t.risk)p.corruption_risk+=randFloat(0,t.risk/2);log(`工作系统：完成「${t.name}」，消耗精力 ${t.energy}，政绩 +${t.performance}${t.democratic?`，民主测评 +${t.democratic}`:""}。`);normalize();renderAll()}
+function runWorkDay(){const p=G.player;if(p.energy<8){toast("精力不足，无法安排核心工作。请先休息或推进时间恢复精力。");return}p.energy-=8;p.performance+=2;p.democratic_score+=1;G.public_trust+=1;log("工作系统：完成一轮综合工作安排，精力 -8，政绩 +2，民主测评 +1。");normalize();renderAll()}
+function workStoryEvent(){if(G.pending_event)return;const e=choice(STORY_EVENTS);G.pending_event={...e,choices:e.choices.map(c=>[c[0],{...c[1]}])};log(`【工作故事】${e.title}：${e.desc}`);showEventAnimation(e.type,e.title);showEventModal();renderAll()}
+function restAction(){G.player.energy=clamp(G.player.energy+15);G.player.democratic_score=clamp(G.player.democratic_score+1);log("工作系统：合理休息与轮班，精力恢复 15。");renderAll()}
+function educationAction(c){const p=G.player;const plans={1:{degree:"本科",money:6,energy:12,ability:5},2:{degree:"硕士",money:14,energy:20,ability:7},3:{degree:"博士",money:24,energy:28,ability:9}};if(c===4){if(p.energy<8){toast("专题培训需要 8 点精力。");return}p.energy-=8;p.ability+=randInt(2,5);p.execution+=randInt(2,4);log("参加专题培训，消耗精力 8，专业与执行能力提升。");normalize();renderAll();return}const x=plans[c];if(!x)return;if(DEGREE_LEVELS[p.degree]>=DEGREE_LEVELS[x.degree]){toast("当前学历已达到或超过该层级。");return}if(p.age>45){toast("45岁后不再安排全日制学历提升。");return}if(p.personal_cash<x.money||p.energy<x.energy){toast(`条件不足：需要个人金钱 ${x.money}、精力 ${x.energy}。`);return}p.personal_cash-=x.money;p.energy-=x.energy;p.degree=x.degree;p.ability+=x.ability;p.democratic_score+=1;log(`学历系统：完成${x.degree}学习，个人金钱 -${x.money}，精力 -${x.energy}。`);normalize();renderAll()}
+function corruptionAction(c){const p=G.player;if(c===1){p.corruption_risk-=10;p.integrity+=2;p.reputation+=2;log("坚持依法依规办事，廉政风险下降。")}if(c===2){p.corruption_risk-=8;G.media_attention+=2;p.performance+=2;log("加强项目审计，减少程序风险。")}if(c===3){const gain=randInt(3,15),risk=randInt(15,30);p.wealth+=gain;p.corruption_risk+=risk;p.integrity-=randInt(3,8);G.media_attention+=randInt(2,6);log(`你接受不当利益，个人财富增加${gain}，廉政风险增加${risk}。`)}if(c===4){p.corruption_risk-=5;p.reputation+=2;log("主动进行利益冲突申报，组织信任提高。")}normalize();renderAll()}
+function personalFinanceAction(c){const p=G.player;if(c===1){p.personal_cash+=randInt(2,6);p.energy-=3;log("个人金钱：领取合法工资与津贴，现金增加。")}if(c===2){const cost=8;if(p.personal_cash<cost){toast("个人金钱不足。");return}p.personal_cash-=cost;p.properties.push({type:"房产",value:cost,legal:true,year:p.year});log("个人房产：购买一套合法自住房，个人现金 -8。")}if(c===3){if(p.company.exists){toast("已有个人公司。");return}const cost=10;if(p.personal_cash<cost){toast("个人金钱不足。");return}p.personal_cash-=cost;p.company={exists:true,name:"个人投资公司",capital:cost,profit:0,legal:true};log("个人公司：设立个人投资公司（游戏内合法经营），现金 -10。")}if(c===4){const gain=randInt(8,18);p.personal_cash+=gain;p.wealth+=gain;p.corruption_risk+=randInt(12,25);p.integrity-=randInt(3,8);p.company.legal=false;p.company.exists=true;p.company.name="隐性关联公司";log(`个人公司/房产：通过违规关联交易获利 ${gain}，但廉政风险大幅上升。`)}if(c===5){if(p.personal_cash<5){toast("个人现金不足以承担整改成本。");return}p.personal_cash-=5;p.corruption_risk-=12;p.integrity+=4;p.reputation+=2;log("个人资产：主动申报并整改利益冲突，风险下降。")}normalize();renderAll()}
+function disciplineCheck(){const p=G.player;const exposure=(p.corruption_risk*.55)+(p.personal_cash>50?8:0)+(p.properties.filter(x=>!x.legal).length*12)+(p.company.exists&&!p.company.legal?20:0);if(p.discipline_investigation){toast("纪委监委正在进驻调查。");return}if(exposure>=42||Math.random()<Math.max(0,(p.corruption_risk-55)/300)){p.discipline_investigation=true;G.pending_event={title:"纪委监委进驻调查",type:"tragic",desc:"发现个人资产、公司与公职身份之间存在高风险利益冲突，纪委监委进驻开展调查。",choices:[["主动说明并配合调查",{corruption_risk:-20,integrity:6,reputation:2,performance:-5,personal_cash:-5,democratic_score:-2}],["整改并申报资产",{corruption_risk:-12,integrity:4,reputation:1,performance:-3,personal_cash:-8}],["隐瞒问题",{corruption_risk:18,integrity:-10,reputation:-10,performance:-8,democratic_score:-6}]].map(c=>[c[0],{...c[1]}])};log("【纪委进驻】个人公司/房产与公职身份产生利益冲突，进入纪律审查事件。");showEventAnimation("tragic","纪委监委进驻调查");showEventModal()}else log("纪律检查：本季度未发现需要进驻调查的重大线索。");renderAll()}
+function ensurePolitical(){
+  if(!G.factions||typeof G.factions!=="object")G.factions={};
+  FACTIONS.forEach(f=>{if(G.factions[f]===undefined)G.factions[f]={strength:12+randInt(0,8),trust:45+randInt(-5,8),members:[]}});
+  if(!Array.isArray(G.political_network))G.political_network=[];
+  if(!Array.isArray(G.upper_reviews))G.upper_reviews=[];
+  if(!Array.isArray(G.hidden_lines))G.hidden_lines=[];
+  if(!Array.isArray(G.successor_candidates))G.successor_candidates=[];
+  if(G.policy_reputation===undefined)G.policy_reputation=50;if(G.media_sentiment===undefined)G.media_sentiment=50;if(G.organizational_trust===undefined)G.organizational_trust=50;if(G.coalition_stability===undefined)G.coalition_stability=50;
+}
+function factionStrength(f){ensurePolitical();return Math.round(G.factions[f]?.strength||0)}
+function cultivateFaction(f){ensurePolitical();if(G.player.energy<8){toast("经营政治生态需要8点精力。");return}G.player.energy-=8;const x=G.factions[f];const chance=45+G.player.political_judgment*.18+G.player.reputation*.12+G.player.integrity*.08+(x.trust-50)*.3;if(randInt(1,100)<=chance){x.strength=clamp(x.strength+6);x.trust=clamp(x.trust+4);G.player.political_capital+=2;G.coalition_stability=clamp(G.coalition_stability+3);log(`【政治生态】你围绕${f}推动政策协作，合作基础增强。`)}else{x.trust=clamp(x.trust-3);G.coalition_stability=clamp(G.coalition_stability-3);log(`【政治生态】与${f}沟通未达成共识，联盟稳定度下降。`)}normalize();renderAll()}
+function reviewByUpper(){ensurePolitical();const scores=UPPER_LEADERS.map(l=>{let s=l.weight*.35+G.player.performance*.24+G.player.reputation*.12+G.player.democratic_score*.08+G.player.integrity*.08+G.player.political_judgment*.08+G.central_support*.05-G.player.corruption_risk*.2+(l.trust-50)*.15;return {...l,score:Math.round(clamp(s))}});const avg=Math.round(scores.reduce((a,b)=>a+b.score,0)/scores.length);G.organizational_trust=clamp(avg);G.upper_reviews.push({year:G.player.year,avg,scores});if(G.upper_reviews.length>12)G.upper_reviews.shift();log(`【上级评价】本次综合评价 ${avg}，组织信任 ${Math.round(G.organizational_trust)}。`);toast(`上级综合评价：${avg}`);renderAll()}
+function politicalChoice(i){ensurePolitical();const issue=POLICY_ISSUES[i];if(!issue)return;if(G.player.energy<5){toast("精力不足。");return}G.player.energy-=5;const f=issue.bonus;const x=G.factions[f];x.trust=clamp(x.trust+5);x.strength=clamp(x.strength+3);G.policy_reputation=clamp(G.policy_reputation+randInt(2,6));G.player.political_judgment=clamp(G.player.political_judgment+2);G.player.performance=clamp(G.player.performance+3);G.player.corruption_risk=clamp(G.player.corruption_risk+issue.risk*.15);log(`【政策路线】你重点推动“${issue.name}”，${f}合作度提高。`);normalize();renderAll()}
+function formCoalition(){ensurePolitical();const active=FACTIONS.filter(f=>G.factions[f].trust>=55);if(active.length<2){toast("至少需要两个派系/工作群体达到55以上信任。");return}G.coalition_stability=clamp(G.coalition_stability+8);G.committee_support=clamp(G.committee_support+6);G.player.political_capital=clamp(G.player.political_capital+4);G.political_network.push({year:G.player.year,type:"coalition",members:active});log(`【联盟形成】你促成了${active.join("、")}之间的政策协作联盟。`);renderAll()}
+function dissolveFaction(f){ensurePolitical();const x=G.factions[f];if(!x)return;x.strength=clamp(x.strength-10);x.trust=clamp(x.trust-6);G.coalition_stability=clamp(G.coalition_stability-5);G.player.political_capital=clamp(G.player.political_capital+1);log(`【联盟重组】${f}影响力下降，原有合作网络开始重新组合。`);renderAll()}
+function buildSuccessor(i){const n=G.cadres[i];if(!n)return;if(G.player.political_capital<4){toast("政治资本不足。");return}G.player.political_capital-=4;n.relation=clamp(n.relation+7);n.loyalty=clamp(n.loyalty+6);G.successor_candidates.push({name:n.name,year:G.player.year,score:Math.round((n.performance+n.ability+n.integrity+n.reputation+n.relation)/5)});log(`【人事梯队】你将${n.name}纳入重点培养梯队。`);renderAll()}
+function ensureCommittee(){
+  if(!Array.isArray(G.committee_members))G.committee_members=[];
+  const need=Math.max(7,Math.min(11,OFFICE_CHAINS[currentRank()].length+5));
+  while(G.committee_members.length<need){
+    const i=G.committee_members.length, faction=FACTIONS[i%FACTIONS.length];
+    const roles=STANDING_COMMITTEE_SEATS;
+    G.committee_members.push({name:NPC_NAMES[(i+currentRank()*2)%NPC_NAMES.length],role:roles[i%roles.length],faction,loyalty:randInt(42,72),ability:randInt(55,82),influence:randInt(40,75),stance:randInt(-25,25),trust:randInt(45,70),active:true});
+  }
+  G.committee_members.forEach(m=>{if(m.active===undefined)m.active=true;if(m.trust===undefined)m.trust=50;if(m.loyalty===undefined)m.loyalty=50;if(m.influence===undefined)m.influence=50;if(m.stance===undefined)m.stance=0});
+}
+function ensureKeyFigures(){if(!Array.isArray(G.key_figures))G.key_figures=[];if(!G.key_figures.length)G.key_figures=KEY_FIGURE_TEMPLATES.map((x,i)=>({...x,id:i,active:true,relation:clamp(x.relation+randInt(-6,6)),trust:clamp(x.trust+randInt(-5,5)),stance:clamp(x.stance+randInt(-4,4))}));G.key_figures.forEach((m,i)=>{m.id=i;if(m.active===undefined)m.active=true;if(m.relation===undefined)m.relation=50;if(m.trust===undefined)m.trust=50;if(m.stance===undefined)m.stance=0})}
+function keyFigureVoteScore(m,topic){const p=G.player;let score=topic.base+(m.relation-50)*.32+(m.trust-50)*.28+(p.reputation-50)*.08+(p.political_judgment-50)*.07;if(topic.id==="personnel")score+=(G.committee_influence-50)*.12+(m.role==="县委组织部长"?10:0);if(topic.id==="project")score+=(G.gdp-100)*.08+(m.faction==="发展派"?10:0)-(G.debt>70?8:0);if(topic.id==="reform")score+=(p.political_judgment-50)*.12+(m.faction==="改革派"?8:0);if(topic.id==="budget")score+=(G.fiscal-50)*.10+(m.faction==="稳健派"?7:0);score+=m.stance*.20;score-=G.committee_conflicts*.08;return clamp(score,8,92)}
+function openCommitteeVote(topicId){if(!committeeUnlocked()){toast("达到副处级后才开放常委会投票。");return}ensureCommittee();ensureKeyFigures();const topic=VOTE_TOPICS.find(x=>x.id===topicId);if(!topic)return;if(G.player.political_capital<topic.cost){toast("政治资本不足以推动该议题。");return}G.player.political_capital-=topic.cost;const votes=G.key_figures.filter(x=>x.active).map(m=>{const score=keyFigureVoteScore(m,topic),r=randInt(1,100),yes=r<=score,abstain=!yes&&r<=score+12;return{id:m.id,name:m.name,role:m.role,faction:m.faction,yes,abstain,score}});const yes=votes.filter(v=>v.yes).length,abstain=votes.filter(v=>v.abstain).length,no=votes.length-yes-abstain,passed=yes>votes.length/2;G.active_vote={topicId:topic.id,topicTitle:topic.title,votes,yes,abstain,no,passed,year:G.player.year};G.vote_history.push(G.active_vote);if(passed){G.committee_support+=7;G.committee_conflicts-=4;G.committee_influence+=3;if(topic.id==="personnel"){G.player.influence+=5;G.player.reputation+=3}if(topic.id==="project"){G.player.performance+=5;G.gdp+=3;G.debt+=6}if(topic.id==="reform"){G.player.political_judgment+=3;G.player.reputation+=4;G.player.political_capital+=3}if(topic.id==="budget"){G.fiscal+=4;G.public_trust+=4}G.key_figures.forEach(m=>{const v=votes.find(x=>x.id===m.id);m.relation=clamp(m.relation+(v?.yes?2:-1));m.trust=clamp(m.trust+(v?.yes?1:-1))});log(`【常委会投票】${topic.title}：${yes}票赞成、${no}票反对、${abstain}票弃权，议案通过。`);showStampAnimation("常委会通过\n"+topic.title)}else{G.committee_conflicts+=7;G.committee_support-=4;G.player.reputation-=2;G.key_figures.forEach(m=>{const v=votes.find(x=>x.id===m.id);m.trust=clamp(m.trust+(v?.yes?1:0)-(v&&!v.yes&&!v.abstain?2:0))});log(`【常委会投票】${topic.title}：${yes}票赞成、${no}票反对、${abstain}票弃权，未形成多数。`)}normalize();renderAll()}
+function negotiateKeyFigure(i){ensureKeyFigures();const m=G.key_figures[i];if(!m)return;if(G.player.energy<6){toast("沟通需要6点精力。");return}G.player.energy-=6;const chance=45+G.player.reputation*.15+G.player.political_judgment*.18+m.trust*.16+m.relation*.10;if(randInt(1,100)<=Math.min(92,chance)){m.relation=clamp(m.relation+randInt(6,12));m.trust=clamp(m.trust+randInt(3,8));G.committee_support+=3;G.player.political_capital+=1;log(`【关键人物】与${m.name}（${m.role}）沟通成功，关系与信任提升。`)}else{m.relation=clamp(m.relation-4);G.committee_conflicts+=2;log(`【关键人物】与${m.name}沟通未达成一致，班子摩擦增加。`)}normalize();renderAll()}
+function renderKeyFigures(){ensureKeyFigures();return `<h4 class="sub-title">关键人物关系网</h4><div class="key-grid">${G.key_figures.filter(m=>m.active).map((m,i)=>`<div class="key-person"><h4><span>${escapeHtml(m.name)}</span><span class="key-role">${escapeHtml(m.role)}</span></h4><p class="muted">${escapeHtml(m.faction)} · ${escapeHtml(m.priority)}</p><div>关系 ${Math.round(m.relation)} · 信任 ${Math.round(m.trust)} · 影响力 ${Math.round(m.power)}</div><div class="relation-bar"><i style="width:${clamp(m.relation)}%"></i></div><p class="muted">政策倾向 ${m.stance>=8?"积极":m.stance<=-8?"谨慎":"中性"}</p><button class="btn btn-sm" data-act="negotiateKeyFigure" data-arg="${i}">单独沟通（精力-6）</button></div>`).join("")}</div>`}
+function committeeBalance(){ensureCommittee();const p=G.player;let support=0,total=0;G.committee_members.forEach(m=>{if(!m.active)return;let v=m.loyalty*.35+m.trust*.35+m.influence*.10+(m.stance>0?m.stance*.2:0);if(m.faction==="务实派")v+=p.performance*.08;if(m.faction==="改革派")v+=p.political_judgment*.07;if(m.faction==="发展派")v+=G.gdp*.03;if(m.faction==="稳健派")v+=p.integrity*.05;support+=v;total+=100});return total?clamp(support/total*100):50}
+function committeeVote(topic,base=50){ensureCommittee();const p=G.player;const balance=committeeBalance();let score=base+(balance-50)*.65+p.political_capital*.12+p.reputation*.08+p.political_judgment*.10-G.committee_conflicts*.12;score+=G.central_support*.05;return clamp(score,5,95)}
+function committeeAction(c,memberIndex=null){
+  if(!committeeUnlocked()){toast("当前行政级别尚未进入常委治理阶段。");return}
+  ensureCommittee(); const p=G.player;
+  if(c===1){const delta=randInt(5,11);G.committee_conflicts-=delta;G.committee_support+=randInt(3,7);G.stability+=2;G.committee_members.forEach(m=>m.trust=clamp(m.trust+2));log(`常委会协调：冲突下降${delta}，班子支持度提升。`)}
+  if(c===2){if(p.political_capital<5){toast("政治资本不足。");return}p.political_capital-=5;const chance=committeeVote("support",48);if(randInt(1,100)<=chance){G.committee_support+=10;G.committee_influence+=5;p.influence+=4;G.committee_members.forEach(m=>m.trust=clamp(m.trust+1));log(`常委会博弈成功：以约${Math.round(chance)}%支持概率争取到多数支持。`)}else{G.committee_conflicts+=7;G.committee_members.forEach(m=>m.trust=clamp(m.trust-2));log("常委会博弈受阻：关键成员未形成多数支持，分歧扩大。")}}
+  if(c===3){if(p.political_capital<8){toast("政治资本不足。");return}p.political_capital-=8;const chance=committeeVote("major",46)+p.performance*.08;if(randInt(1,100)<=chance){G.committee_support+=8;G.public_trust+=4;p.performance+=6;G.committee_influence+=4;log("重大议题通过常委会研究，形成班子共同决策。")}else{G.committee_conflicts+=9;p.reputation-=2;G.media_attention+=2;log("重大议题未获足够支持，进入继续协调状态。")}}
+  if(c===4){G.committee_conflicts-=5;G.committee_support+=4;p.political_capital+=2;G.committee_members.forEach(m=>m.trust=clamp(m.trust+4));log("主动改善班子关系，关键成员信任提升。")}
+  if(c===5){if(memberIndex===null||!G.committee_members[memberIndex]){toast("请选择一名常委进行沟通。");return}const m=G.committee_members[memberIndex];if(p.energy<6){toast("沟通需要6点精力。");return}p.energy-=6;const chance=45+p.reputation*.18+p.political_judgment*.15+m.trust*.15;if(randInt(1,100)<=chance){m.trust=clamp(m.trust+10);m.loyalty=clamp(m.loyalty+5);G.committee_support+=4;log(`与${m.name}（${m.faction}）沟通成功，信任提升。`)}else{m.trust=clamp(m.trust-5);G.committee_conflicts+=3;log(`与${m.name}沟通效果有限，班子摩擦上升。`)}}
+  if(c===6){const threshold=60;const passed=committeeVote("personnel",threshold)>=60;if(passed){G.committee_support+=5;G.player.influence+=3;G.player.reputation+=2;log("干部人事议题获得常委会多数支持。")}else{G.committee_conflicts+=6;log("干部人事议题未形成多数意见，暂缓提交。")}}
+  normalize();renderAll()
+}
+function emergencyChance(){const p=G.player;const protection=clamp((p.performance*.20+p.democratic_score*.12+DEGREE_BONUS[p.degree]*2+p.integrity*.10)/4,0,30);const riskPenalty=p.corruption_risk*.0015;return clamp(0.24-protection/100+riskPenalty,0.06,0.28)}
+function emergencySystem(){if(G.emergency_active)return;if(Math.random()<emergencyChance()){const e=choice(EMERGENCY_TYPES);G.emergency_active=true;G.emergency_name=e.name;G.emergency_description=e.description;G.emergency_pressure=e.pressure;log(`【突发事件】${e.name}：${e.description}`)}}
+function doEmergencyCheck(){const b=G.emergency_active;emergencySystem();toast(!b&&G.emergency_active?`突发事件：${G.emergency_name}`:"本次巡查未发现新事件。");renderAll()}
+function emergencyRespond(c){if(!G.emergency_active)return;if(c===1){G.emergency_pressure-=12;G.stability+=5;G.player.performance+=4;log("启动应急指挥机制，跨部门协调提速。")}if(c===2){G.emergency_pressure-=10;G.stability+=8;G.player.political_capital-=2;log("调集公安和应急力量，现场秩序得到控制。")}if(c===3){G.emergency_pressure-=9;G.public_trust+=7;G.fiscal-=7;G.medical+=3;log("优先保障群众基本生活和医疗救助。")}if(c===4){G.emergency_pressure-=7;G.public_trust+=6;G.media_attention+=5;log("加强信息公开和舆情回应。")}if(c===5){G.emergency_pressure-=6;G.player.integrity+=3;G.player.corruption_risk-=5;log("同步启动审计与责任追踪。")}if(G.emergency_pressure<=0){G.emergency_active=false;G.emergency_name="";G.emergency_description="";log("突发事件处置结束，进入恢复与总结阶段。")}normalize();renderAll()}
+function randomEvent(){const e=choice(RANDOM_EVENTS);log(`【年度事件：${e[0]}】${e[1]}`);applyEffects(e[2])}
+function triggerRichEvent(){if(G.pending_event)return;if(Math.random()<0.38){const e=choice(RICH_EVENTS);G.pending_event={...e,choices:e.choices.map(c=>[c[0],{...c[1]}])};log(`【${e.title}】${e.desc}`);showEventAnimation(e.type,e.title);showEventModal()}}
+function showEventAnimation(type,title){const ov=document.createElement("div");ov.id="eventAnimOverlay";const cls=type==="natural"?"natural":type==="tragic"?"tragic":type==="positive"?"positive":"moving";ov.innerHTML=`<div class="event-anim ${cls}"><div class="event-anim-mark">${type==="natural"?"⚠":type==="tragic"?"哀":type==="positive"?"能":"暖"}</div><div>${escapeHtml(title)}</div></div>`;document.body.appendChild(ov);setTimeout(()=>ov.remove(),1700)}
+function triggerSpecialEvent(){if(G.player.year%2===0&&Math.random()<0.48){G.pending_event=choice(SPECIAL_EVENTS);log(`【事件】${G.pending_event.title}：${G.pending_event.desc}`);showEventModal()}}
+function showEventModal(){const e=G.pending_event;if(!e){hideEventModal();return}const modal=document.getElementById("eventModal");document.getElementById("eventModalTitle").textContent=`📌 ${e.title}`;document.getElementById("eventModalDesc").textContent=e.desc;document.getElementById("eventModalChoices").innerHTML=e.choices.map((c,i)=>{const effects=Object.entries(c[2]).map(([k,v])=>`${k}${v>=0?"+":""}${v}`).join(" · ");return`<button class="modal-choice-btn" data-act="chooseEvent" data-arg="${i}"><b>${c[0]}</b><div class="effects">${effects}</div></button>`}).join("");modal.classList.add("active")}
+function hideEventModal(){document.getElementById("eventModal").classList.remove("active")}
+function chooseEvent(i){if(!G.pending_event)return;const ch=G.pending_event.choices[i];if(!ch)return;log(`你选择“${ch[0]}”：${G.pending_event.desc}`);applyEffects(ch[2]);G.pending_event=null;hideEventModal();renderAll()}
+function annualAssessment(){const p=G.player;let score=p.performance*.24+p.ability*.12+p.execution*.10+p.integrity*.14+p.reputation*.11+p.public_support*.08+G.stability*.06+G.public_trust*.05+DEGREE_BONUS[p.degree]*.5+p.political_judgment*.10;score-=p.corruption_risk*.28;if(score>=82){p.annual_assessment="优秀";p.performance+=4;p.reputation+=3}else if(score>=70){p.annual_assessment="称职";p.performance+=2}else if(score>=58){p.annual_assessment="基本称职"}else{p.annual_assessment="不称职";p.performance-=4}log(`年度考核：${p.annual_assessment}（综合评价 ${score.toFixed(1)}）。`)}
+function nextCareerStep(){const p=G.player,list=OFFICE_CHAINS[p.rank_index],i=list.indexOf(currentOffice());if(i<list.length-1)return{type:"same",rank:p.rank_index,office:list[i+1]};if(p.rank_index<RANKS.length-1)return{type:"up",rank:p.rank_index+1,office:OFFICE_CHAINS[p.rank_index+1][0]};return null}
+function promotionCompositeScore(){const p=G.player;return p.performance*.50+p.democratic_score*.30+DEGREE_BONUS[p.degree]*2}
+function promotionScore(){const p=G.player;return promotionCompositeScore()+p.reputation*.08+p.influence*.08+p.integrity*.08+p.political_judgment*.07+p.execution*.05+p.public_support*.04+Math.min(12,p.years_in_post*2)+Math.min(8,p.grassroots_years*.5)-(p.corruption_risk*.25)+G.committee_support*.04+G.central_support*.03}
+function getPromotionConditions(){const p=G.player,n=nextCareerStep();if(!n)return null;const same=n.type==="same";const minAge=RANKS[n.rank][1];const minYears=same?2:(p.rank_index>=7?3:2);const compThresh=same?52:60+p.rank_index*1.2;const totalThresh=same?72:84+p.rank_index*1.5;const comp=promotionCompositeScore();const total=promotionScore()+(same?6:0)+(p.annual_assessment==="优秀"?12:p.annual_assessment==="基本称职"?-5:p.annual_assessment==="不称职"?-18:0);const riskPenalty=p.corruption_risk*.25;return{target:`${RANKS[n.rank][0]} · ${n.office}`,age:{cur:p.age,need:minAge,pass:p.age>=minAge},years:{cur:p.years_in_post,need:minYears,pass:p.years_in_post>=minYears},composite:{cur:comp,need:compThresh,pass:comp>=compThresh},total:{cur:total,need:totalThresh,pass:total>=totalThresh},assessment:p.annual_assessment,risk:p.corruption_risk,riskPenalty:riskPenalty,allPass:p.age>=minAge&&p.years_in_post>=minYears&&comp>=compThresh&&total>=totalThresh}}
+function promotionSystem(){const p=G.player,n=nextCareerStep();if(!n){log("你已达到当前设定的最高职务。");return}const cond=getPromotionConditions();if(!cond)return;if(!cond.allPass){p.years_in_post+=.5;log(`组织考察暂缓：条件未完全满足。`);normalize();return}const old=`${rankName()}·${currentOffice()}`;p.rank_index=n.rank;p.office=n.office;p.years_in_post=0;p.influence=clamp(p.influence+6);p.reputation=clamp(p.reputation+4);p.performance=clamp(p.performance+4);p.appointment_history.push({year:p.year,from:old,to:`${rankName(n.rank)}·${n.office}`});log(`【组织任命】${old} → ${rankName(n.rank)}·${n.office}。`);showStampAnimation(`${rankName(n.rank)}\n${n.office}`);normalize()}
+function doPromotion(){promotionSystem();renderAll()}
+function congressOutcome(){const p=G.player;if(!congressEligible()||p.last_congress===G.player.year)return;const n=congressNumber(G.player.year),power=calcPower();let status="中央候补委员";if(p.rank_index>=12)status="政治局常委";else if(p.rank_index>=11)status="政治局委员";else if(p.rank_index>=9)status="中央委员";else if(p.rank_index>=7)status="中央候补委员";if(power<62&&p.rank_index===7&&Math.random()<0.45)status="未进入中央委员会";if(power<70&&p.rank_index===8&&Math.random()<0.25)status="中央候补委员";p.central_status=status;p.last_congress=G.player.year;p.congress_count++;log(`【第${n}次全国党代会】${p.office}（${rankName()}）参会资格确认。换届结果：${status}。`);if(status!=="未进入中央委员会")showStampAnimation(`第${n}次党代会\n${status}`)}
+function congressCheck(){if(G.player.year>=1982&&(G.player.year-1982)%5===0&&G.player.year!==G.player.last_congress){if(congressEligible())congressOutcome();else log(`【第${congressNumber(G.player.year)}次全国党代会】你当前为${rankName()}，尚未达到正厅级参会门槛。`)}}
+function advanceProjects(){const done=[];G.projects.forEach(p=>{const delay=Math.max(5,p.risk-Math.floor(G.player.execution/5)-Math.floor(G.player.integrity/10));if(randInt(1,100)<=delay){p.progress=Math.max(0,p.progress-5);G.player.performance-=1;log(`项目《${p.name}》出现施工或管理问题，进度受影响。`)}else{p.progress+=Math.floor(100/p.duration);if(p.progress>=100){p.progress=100;done.push(p)}}});done.forEach(p=>{G.gdp+=p.gdp;G.employment+=p.jobs;G.public_trust+=Math.floor(p.livelihood/2);G.fiscal+=p.fiscal;G.environment+=p.environment;G.player.performance+=5;log(`项目《${p.name}》竣工投入使用，产生综合效益。`)});G.projects=G.projects.filter(p=>p.progress<100);normalize()}
+function endYear(){if(G.gameOver){toast("本局已结束。");return}log(`—— ${G.player.year}年${G.player.month}月季度结算 ——`);advanceProjects();G.gdp+=randInt(-1,2);G.fiscal+=Math.floor((G.gdp-100)/50);G.income+=Math.floor((G.gdp-100)/70);if(G.debt>80){G.gdp-=2;G.public_trust-=1}if(G.inflation>75){G.public_trust-=1;G.income-=1}G.player.energy-=8;if(G.player.energy<25){G.player.performance-=2;G.player.reputation-=1;log("精力不足：连续高强度工作开始影响判断与执行。")}G.player.years_in_post+=.25;if(["乡镇","县"].includes(G.player.region_level)||currentRank()<=4)G.player.grassroots_years+=.25;G.cadres.forEach(n=>{if(G.player.month===1)n.age++;n.performance=clamp(n.performance+randInt(-2,2));if(Math.random()<.08)n.influence=clamp(n.influence+randInt(1,4))});if(G.player.month===1){annualAssessment();randomEvent();if(G.player.year%2===0)triggerSpecialEvent()}triggerRichEvent();if(G.emergency_active){G.emergency_pressure+=1;G.stability-=1;log(`突发事件《${G.emergency_name}》仍在持续。`)}else emergencySystem();if(G.player.corruption_risk<15){G.player.integrity+=.5;G.player.reputation+=.5}if(G.player.month===1){congressCheck();promotionSystem()}if(Math.random()<0.18)disciplineCheck();if(Math.random()<0.10){ensurePolitical();const f=choice(FACTIONS);G.factions[f].strength=clamp(G.factions[f].strength+randInt(-4,5));G.factions[f].trust=clamp(G.factions[f].trust+randInt(-3,4));}if(G.player.month===1&&G.player.year%2===0&&currentRank()>=4)reviewByUpper();G.player.month+=3;if(G.player.month>12){G.player.month=1;G.player.age++;G.player.year++;G.player.political_capital+=4;G.player.energy=clamp(G.player.energy+18)}else{G.player.energy=clamp(G.player.energy+5)}if(G.player.month===1&&G.player.year%3===0)generateCadres(2);normalize();checkAchievements();autoSaveAndroid();log(`季度结算完成：${rankName()}·${currentOffice()}，精力 ${Math.round(G.player.energy)}，权力指数 ${calcPower()}。`);checkEnd();renderAll()}
+function doEndYear(){endYear()}
+function checkEnd(){const p=G.player;if(p.corruption_risk>=100){showEnding("职业生涯终止","长期累积的廉政风险达到不可逆阈值。");G.gameOver=true;return true}if(p.annual_assessment==="不称职"&&p.performance<25){showEnding("职业生涯重大挫折","连续低绩效使组织考察陷入被动。");G.gameOver=true;return true}if(p.age>=72&&p.rank_index<10){showEnding("生涯落幕","你完成了漫长仕途，但未进入国家最高层级。");G.gameOver=true;return true}if(p.rank_index===12){showEnding("巅峰","你进入总书记阶段，游戏转入国家治理终局。",true)}return false}
+
+function autoSaveAndroid(){
+  try{
+    if(window.AndroidGame&&typeof window.AndroidGame.save==="function"){
+      window.AndroidGame.save(JSON.stringify(G));
+    }
+  }catch(_){}
+}
+function loadGameObject(d){
+  G=Object.assign(newGame(),d);
+  G.player=Object.assign(newPlayer(),d.player);
+  if(!G.player.office)G.player.office=OFFICE_CHAINS[G.player.rank_index]?.[0]||"科员";
+  if(!G.player.month)G.player.month=1;
+  if(G.player.energy===undefined)G.player.energy=100;
+  if(G.player.democratic_score===undefined)G.player.democratic_score=60;
+  if(G.player.personal_cash===undefined)G.player.personal_cash=12;
+  if(!G.player.company)G.player.company={exists:false,name:"",capital:0,profit:0,legal:false};
+  if(!Array.isArray(G.player.properties))G.player.properties=[];
+  if(!Array.isArray(G.achievements))G.achievements=[];
+  if(G.player.discipline_investigation===undefined)G.player.discipline_investigation=false;
+  ensurePolitical();normalize();checkAchievements();
+  document.getElementById("startScreen").style.display="none";
+  const eo=document.getElementById("endingOverlay");if(eo)eo.remove();
+  renderAll();
+}
+
+function saveGame(){const raw=JSON.stringify(G);if(window.AndroidGame&&typeof window.AndroidGame.save==="function"){window.AndroidGame.save(raw);toast("存档已保存到本机。");return}const blob=new Blob([raw],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`仕途存档_${G.player.year}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast("存档已下载。")}
+function triggerLoad(){if(window.AndroidGame&&typeof window.AndroidGame.load==="function"){try{const raw=window.AndroidGame.load();if(raw){loadGameObject(JSON.parse(raw));toast("本机存档读取成功。");return}}catch(_){toast("本机存档读取失败。")}}document.getElementById("loadInput").click()}
+function loadGameFile(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const d=JSON.parse(e.target.result);if(!d.player)throw Error();loadGameObject(d);toast("存档读取成功。")}catch(err){toast("存档解析失败。")}};reader.readAsText(file);input.value=""}
+
+// ======================= UI =======================
+const VIEWS=[{id:"overview",label:"总览"},{id:"personnel",label:"干部人事"},{id:"department",label:"部门交流"},{id:"politics",label:"政治博弈"},{id:"ecology",label:"政治生态"},{id:"livelihood",label:"民生治理"},{id:"projects",label:"项目建设"},{id:"economy",label:"经济治理"},{id:"committee",label:"常委会"},{id:"congress",label:"全国党代会"},{id:"promotion",label:"组织任用"},{id:"cadres",label:"干部档案"},{id:"resume",label:"履历档案"},{id:"integrity",label:"廉政风险"},{id:"work",label:"日常工作"},{id:"personal",label:"个人资产"},{id:"emergency",label:"突发事件"},{id:"achievements",label:"生涯成就"}];
+function chip(label,value,opts={}){const warn=opts.warn!==undefined&&value>=opts.warn;return`<div class="chip${warn?" chip-warn":""}"><span>${label}</span><b>${Math.round(value)}</b></div>`}
+function meter(label,value,opts={}){const warn=opts.warn!==undefined&&value>=opts.warn;return`<div class="meter"><div class="meter-top"><span>${label}</span><b class="${warn?"danger":""}">${Math.round(value)}</b></div><div class="meter-bar"><div class="meter-fill ${warn?"fill-danger":""}" style="width:${clamp(value)}%"></div></div></div>`}
+function panelHead(t,d){return`<div class="panel-head"><h2>${t}</h2><p>${d||""}</p></div>`}
+function renderCadreTable(selectable=true){return`<div class="table-wrap"><table class="cadre-table"><thead><tr><th>姓名</th><th>级别</th><th>具体职务</th><th>部门</th><th>年龄</th><th>能力</th><th>廉洁</th><th>关系</th><th>派别</th></tr></thead><tbody>${G.cadres.map((n,i)=>`<tr class="${selectable&&UI.selectedCadre===i?"row-selected":selectable?"clickable":""}" ${selectable?`data-act="selectCadre" data-arg="${i}"`:""}><td>${n.name}</td><td>${n.rank}</td><td>${n.office}</td><td>${n.department}</td><td>${n.age}</td><td>${n.ability}</td><td>${n.integrity}</td><td>${n.relation}</td><td>${n.faction}</td></tr>`).join("")}</tbody></table></div>`}
+
+// ---- 晋升条件展示卡片 ----
+function renderPromotionConditions(){
+const cond=getPromotionConditions();if(!cond)return`<div class="card" style="border-color:var(--gold);background:#f6eed9;"><b>🏁 已达当前体系最高职务</b></div>`;
+const items=[{label:"年龄要求",cur:`${cond.age.cur}岁`,need:`≥${cond.age.need}岁`,pass:cond.age.pass},{label:"任职年限",cur:`${cond.years.cur.toFixed(1)}年`,need:`≥${cond.years.need}年`,pass:cond.years.pass},{label:"综合评分(政绩+民主测评+学历)",cur:cond.composite.cur.toFixed(1),need:`≥${cond.composite.need.toFixed(1)}`,pass:cond.composite.pass},{label:"总评分(含考核/廉政等)",cur:cond.total.cur.toFixed(1),need:`≥${cond.total.need.toFixed(1)}`,pass:cond.total.pass}];
+let html=`<div class="card" style="border-color:var(--gold);background:#f6eed9;padding:12px 14px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;"><span><b>📈 晋升条件检查</b> → ${cond.target}</span><span>年度考核: <b>${cond.assessment}</b> · 廉政风险: <b>${cond.risk}</b> (扣减 ${cond.riskPenalty.toFixed(1)})</span></div>`;
+items.forEach(it=>{const cls=it.pass?"pass":"fail";const label=it.pass?"✅":"❌";html+=`<div class="cond-card ${cls}"><span>${it.label}</span><span><b>${it.cur}</b> ${it.need} ${label}</span></div>`});
+html+=`<div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;"><button class="btn btn-gold" data-act="doPromotion" ${!cond.allPass?"disabled":""}>${cond.allPass?"✅ 申请组织考察":"❌ 条件未满足"}</button><button class="btn btn-sm" data-view="promotion">进入任用面板</button></div></div>`;
+return html;
+}
+
+function renderOverview(){
+const p=G.player,rank=rankName(),power=calcPower(),next=nextCareerStep();
+let html=panelHead("仕途总览","把“行政级别”和“具体职务”拆开：同一级别可以多次转任、重用，再进入下一行政层级。");
+html+=`<div class="card congress-banner"><b>历史时点：</b>${p.year}年　<b>第${congressNumber(p.year)}次全国党代会</b> ${congressEligible()?"· 你已达到正厅级参会门槛":"· 正厅级以上方可参加"}　<b>中央身份：</b>${p.central_status}</div>`;
+html+=`<div class="stat-grid"><div class="mini-card"><h4>当前职务</h4><p><b>${rank}</b> · ${currentOffice()}</p></div><div class="mini-card"><h4>含权量</h4><p style="font-size:24px;color:var(--seal);font-weight:900">${power}</p></div><div class="mini-card"><h4>下一个组织节点</h4><p>${next?`${RANKS[next.rank][0]} · ${next.office}`:"已达上限"}</p></div><div class="mini-card"><h4>中央身份</h4><p>${p.central_status}</p></div></div>`;
+html+=renderPromotionConditions();
+html+=`<h4 class="sub-title">仕途时间线</h4><div class="timeline">`;
+const hist=p.appointment_history.slice(-7);
+if(!hist.length)html+=`<div class="timeline-item active"><div class="yr">1982</div><b>科员</b><p class="muted">基层起步</p></div>`;
+hist.forEach(h=>html+=`<div class="timeline-item"><div class="yr">${h.year}</div><b>${h.to}</b><p class="muted">组织任命</p></div>`);
+html+=`</div>`;
+html+=`<div class="card meters-card">${meter("能力",p.ability)}${meter("判断",p.political_judgment)}${meter("执行",p.execution)}${meter("廉洁",p.integrity)}${meter("政绩",p.performance)}${meter("声望",p.reputation)}${meter("影响力",p.influence)}${meter("政治资本",p.political_capital)}${meter("廉政风险",p.corruption_risk,{warn:50})}</div>`;
+return html;
+}
+function renderPersonnel(){let h=panelHead("干部人事","培养、推荐、观察干部，逐渐形成自己的组织工作网络。")+renderCadreTable(true);if(UI.selectedCadre!==null&&G.cadres[UI.selectedCadre]){const n=G.cadres[UI.selectedCadre];h+=`<div class="action-card"><h3>${n.name} · ${n.rank} · ${n.office}</h3><div class="btn-row"><button class="btn" data-act="cultivateCadre" data-arg="${UI.selectedCadre}">重点培养 -3政治资本</button><button class="btn" data-act="recommendCadre" data-arg="${UI.selectedCadre}">推荐使用 -8政治资本</button><button class="btn" data-act="improveRelation" data-arg="${UI.selectedCadre}">改善关系</button></div></div>`}return h}
+function renderDepartment(){let h=panelHead("部门交流","部门路线影响能力结构。组织、人事、纪委、政法、发改等岗位会产生不同的职业资本。");h+=`<p class="muted">当前：<b>${G.player.department}</b> · ${currentOffice()}</p>`;for(const[g,list]of Object.entries(DEPARTMENTS)){h+=`<div class="dept-group"><h4>${g}</h4><div class="chip-row">${list.map(d=>`<button class="chip chip-btn ${UI.selectedDept===d?"chip-active":""}" data-act="pickDept" data-arg="${JSON.stringify(d)}">${d}</button>`).join("")}</div></div>`}h+=`<div class="action-card"><button class="btn btn-primary" data-act="doTransfer">申请交流${UI.selectedDept?`至「${UI.selectedDept}」`:""}</button></div>`;return h}
+function renderPolitics(){let h=panelHead("政治博弈","以协调、政策、政绩和人事竞争为核心；不把晋升简化为单一数值。")+renderCadreTable(true);if(UI.selectedCadre!==null){h+=`<div class="action-card"><div class="btn-row"><button class="btn" data-act="struggleAction" data-arg="[${UI.selectedCadre},1]">协调路线</button><button class="btn" data-act="struggleAction" data-arg="[${UI.selectedCadre},2]">争取支持</button><button class="btn" data-act="struggleAction" data-arg="[${UI.selectedCadre},3]">用政绩竞争</button><button class="btn" data-act="struggleAction" data-arg="[${UI.selectedCadre},4]">提出政策方案</button><button class="btn" data-act="struggleAction" data-arg="[${UI.selectedCadre},5]">暂缓冲突</button></div></div>`}return h}
+function renderLivelihood(){const items=[[1,"医疗",8],[2,"教育",8],[3,"住房保障",10],[4,"就业",6],[5,"养老与救助",7],[6,"环境",7]];return panelHead("民生治理","用有限财政换取长期治理绩效、公众信任与政治声望。")+`<div class="grid-cards">${items.map(x=>`<div class="mini-card"><h4>${x[1]}</h4><p class="muted">财政 -${x[2]}</p><button class="btn" data-act="livelihoodAction" data-arg="${x[0]}">投入</button></div>`).join("")}</div>`}
+function renderProjects(){let h=panelHead("项目建设","项目有周期、债务、延期和廉政风险，不再是一键获得政绩。")+`<div class="grid-cards">${PROJECT_TEMPLATES.map((t,i)=>`<div class="mini-card"><h4>${t.name}</h4><p class="muted">投资 ${t.cost}亿 · ${t.duration}年 · 风险 ${t.risk}</p><p class="muted">GDP+${t.gdp} · 就业+${t.jobs} · 民生+${t.livelihood}</p><button class="btn" data-act="startProject" data-arg="${i}" ${G.fiscal<t.cost?"disabled":""}>开工</button></div>`).join("")}</div><h4 class="sub-title">在建项目</h4>`;h+=G.projects.length?G.projects.map(x=>`<div class="progress-row"><span>${x.name}</span><div class="meter-bar"><div class="meter-fill" style="width:${x.progress}%"></div></div><span>${x.progress}%</span></div>`).join(""):`<p class="muted">暂无。</p>`;return h}
+function renderEconomy(){const a=[[1,"扶持中小企业","企业、就业改善"],[2,"基础设施投资","增长明显但债务上升"],[3,"减税促消费","收入与消费提升"],[4,"发展制造业","增长与就业提高，环境承压"],[5,"财政整顿","降低债务，短期增长承压"]];return panelHead("经济治理","发展、财政、债务、就业之间存在长期权衡。")+`<div class="grid-cards">${a.map(x=>`<div class="mini-card"><h4>${x[1]}</h4><p class="muted">${x[2]}</p><button class="btn" data-act="economyAction" data-arg="${x[0]}">执行</button></div>`).join("")}</div>`}
+function renderPoliticalEcology(){ensurePolitical();let h=panelHead("政治生态与关键人物","把个人能力、班子关系、派系合作、上级评价和干部梯队放进同一张政治生态图。所有人物与博弈均为架空游戏机制。");h+=`<div class="card stat-grid"><div>组织信任 <b>${Math.round(G.organizational_trust)}</b></div><div>联盟稳定 <b>${Math.round(G.coalition_stability)}</b></div><div>政策声誉 <b>${Math.round(G.policy_reputation)}</b></div><div>舆情环境 <b>${Math.round(G.media_sentiment)}</b></div></div>`;h+=`<h4 class="sub-title">关键人物与上级评价</h4><div class="eco-grid">${UPPER_LEADERS.map((l,i)=>`<div class="eco-card"><h4>${l.name} · ${l.role}</h4><p class="muted">风格：${l.style}</p><div class="score-big">${l.trust}</div><p>对你的当前信任度</p></div>`).join("")}</div><div class="btn-row"><button class="btn btn-primary" data-act="reviewByUpper">申请上级综合评价</button><button class="btn" data-act="formCoalition">促成跨派系政策联盟</button></div>`;h+=`<h4 class="sub-title">派系/工作群体</h4><div class="eco-grid">${FACTIONS.map(f=>{const x=G.factions[f];return`<div class="eco-card"><h4>${f}</h4><p>影响力 <b>${Math.round(x.strength)}</b> · 信任 <b>${Math.round(x.trust)}</b></p><div class="relation-bar"><i style="width:${clamp(x.strength)}%"></i></div><div class="btn-row"><button class="btn btn-sm" data-act="cultivateFaction" data-arg="${JSON.stringify(f)}">协商合作</button><button class="btn btn-sm" data-act="dissolveFaction" data-arg="${JSON.stringify(f)}">重组网络</button></div></div>`}).join("")}</div>`;h+=`<h4 class="sub-title">政策路线</h4><div class="eco-grid">${POLICY_ISSUES.map((x,i)=>`<div class="eco-card"><h4>${x.name}</h4><p class="muted">${x.desc}</p><p>倾向合作：${x.bonus} · 风险系数 ${x.risk}</p><button class="btn" data-act="politicalChoice" data-arg="${i}">重点推动（精力-5）</button></div>`).join("")}</div>`;if(G.successor_candidates.length)h+=`<h4 class="sub-title">干部梯队</h4><div class="chip-row">${G.successor_candidates.slice(-8).map(x=>`<span class="chip">${escapeHtml(x.name)} · ${x.score} · ${x.year}</span>`).join("")}</div>`;if(G.upper_reviews.length)h+=`<h4 class="sub-title">上级评价记录</h4>${G.upper_reviews.slice(-5).reverse().map(x=>`<div class="timeline-item">${x.year}年 · 综合评价 <b>${x.avg}</b> · 组织信任 ${Math.round(G.organizational_trust)}</div>`).join("")}`;return h}
+function renderCommittee(){if(!committeeUnlocked())return panelHead("常委会","达到副处级后开放，模拟重大事项协调、关键人物关系和班子投票。");ensureCommittee();ensureKeyFigures();let h=panelHead("常委会博弈","书记、县长、组织部长、纪委书记等关键人物拥有独立关系值；重大事项采用逐人投票。");h+=`<div class="card stat-grid"><div>支持度 <b>${Math.round(G.committee_support)}</b></div><div>影响力 <b>${Math.round(G.committee_influence)}</b></div><div>冲突度 <b>${Math.round(G.committee_conflicts)}</b></div><div>预估多数 <b>${Math.round(committeeBalance())}%</b></div></div>`;h+=`<div class="action-card"><div class="btn-row"><button class="btn" data-act="committeeAction" data-arg="1">召开协调会</button><button class="btn" data-act="committeeAction" data-arg="2">争取多数支持</button><button class="btn" data-act="committeeAction" data-arg="4">改善常委关系</button></div></div>`;h+=renderKeyFigures();h+=`<h4 class="sub-title">常委会正式表决</h4><div class="grid-cards">${VOTE_TOPICS.map(t=>`<div class="mini-card"><h4>🗳️ ${t.title}</h4><p class="muted">${t.desc}</p><p class="muted">政治资本 -${t.cost} · ${t.reward}</p><button class="btn btn-gold" data-act="openCommitteeVote" data-arg="${JSON.stringify(t.id)}">发起投票</button></div>`).join("")}</div>`;if(G.active_vote){const v=G.active_vote;h+=`<div class="vote-card"><h4>最近一次表决：${escapeHtml(v.topicTitle)}</h4><p><b class="${v.passed?"vote-yes":"vote-no"}">${v.passed?"✓ 议案通过":"✕ 议案未通过"}</b> · 赞成 ${v.yes} · 反对 ${v.no} · 弃权 ${v.abstain}</p>${v.votes.map(x=>`<div class="vote-row"><b>${escapeHtml(x.name)}</b><span class="muted">${escapeHtml(x.role)}</span><span class="vote-badge ${x.yes?"vote-yes":x.abstain?"vote-abstain":"vote-no"}">${x.yes?"赞成":x.abstain?"弃权":"反对"}</span></div>`).join("")}</div>`}return h}
+function renderCongress(){let h=panelHead("全国党代会","1982年为第十二次全国党代会，此后每5年一届。正厅级以上获得参会资格；会议结果影响中央身份和含权量。");const p=G.player,n=congressNumber(p.year);h+=`<div class="card congress-banner"><h3>第${n}次全国党代会 · ${p.year}</h3><p>参会资格：${congressEligible()?"已满足（正厅级以上）":"未满足"} · 当前职务：${rankName()}·${currentOffice()}</p><p>中央身份：<b>${p.central_status}</b> · 历次党代会：${p.congress_count}次</p></div><h4 class="sub-title">中央身份阶梯</h4><div class="grid-cards"><div class="mini-card"><b>正厅级</b><p>中央候补委员（高权力/高声望时更稳）</p></div><div class="mini-card"><b>正部级</b><p>中央委员</p></div><div class="mini-card"><b>副国级</b><p>政治局委员</p></div><div class="mini-card"><b>正国级</b><p>政治局常委</p></div></div>`;return h}
+function renderPromotion(){const p=G.player,n=nextCareerStep();let h=panelHead("组织任用","每个行政级别不是只有一次晋升：先发生同级重用，再跨行政层级。");h+=`<div class="card"><p>当前：<b>${rankName()}</b> · ${currentOffice()}</p><p>任职：${p.years_in_post.toFixed(1)}年 · 年龄：${p.age}岁 · 年度考核：${p.annual_assessment}</p><p>预计下一节点：${n?`<b>${RANKS[n.rank][0]} · ${n.office}</b>`:"已达上限"}</p><p>晋升综合评分：${promotionScore().toFixed(1)}</p><p>政绩+民主测评+学历：<b>${promotionCompositeScore().toFixed(1)}</b></p></div>`;if(n)h+=`<div class="action-card"><button class="btn btn-primary" data-act="doPromotion">申请组织考察</button><p class="hint">实际任用仍受年龄、任职年限、考核、政绩、声望、廉政、组织支持等共同影响。</p></div>`;return h}
+function renderResume(){const p=G.player;let h=panelHead("履历档案","完整记录具体职务，而不仅是“副处级/正处级”。");h+=`<div class="card resume-card"><p>姓名：${p.name}</p><p>年龄：${p.age}</p><p>出生起点：1982年22岁</p><p>行政级别：${rankName()}</p><p>具体职务：${currentOffice()}</p><p>部门：${p.department}</p><p>基层经历：${p.grassroots_years}年 · 交流：${p.exchange_experience}次</p><p>重大项目：${p.major_project_experience||0}次</p><p>年度考核：${p.annual_assessment}</p><p>民主测评：${p.democratic_score}</p><p>个人现金：${p.personal_cash}</p><p>中央身份：${p.central_status}</p></div>`;if(p.appointment_history.length){h+=`<h4 class="sub-title">任职履历</h4><div class="timeline">${p.appointment_history.map(x=>`<div class="timeline-item"><div class="yr">${x.year}</div><b>${x.to}</b><p class="muted">原：${x.from}</p></div>`).join("")}</div>`}return h}
+function renderCadres(){return panelHead("干部档案","当前掌握的干部网络。")+renderCadreTable(false)}
+function renderIntegrity(){return panelHead("廉政风险",`当前廉政风险 ${G.player.corruption_risk}；风险越低，长期组织信任越稳定。`)+`<div class="grid-cards"><div class="mini-card"><h4>严格依法办事</h4><button class="btn" data-act="corruptionAction" data-arg="1">执行</button></div><div class="mini-card"><h4>加强审计</h4><button class="btn" data-act="corruptionAction" data-arg="2">执行</button></div><div class="mini-card mini-danger"><h4>接受不当利益</h4><button class="btn btn-danger" data-act="corruptionAction" data-arg="3">高风险行为</button></div><div class="mini-card"><h4>利益冲突申报</h4><button class="btn" data-act="corruptionAction" data-arg="4">执行</button></div></div>`}
+function renderEmergency(){let h=panelHead("突发事件","事件不是纯惩罚，也提供建立治理能力与组织信任的机会。");if(G.emergency_active)h+=`<div class="card emergency-banner"><b>${G.emergency_name}</b><p>${G.emergency_description}</p><p>处置压力：${G.emergency_pressure}</p><div class="btn-row"><button class="btn" data-act="emergencyRespond" data-arg="1">应急指挥</button><button class="btn" data-act="emergencyRespond" data-arg="2">公安/应急力量</button><button class="btn" data-act="emergencyRespond" data-arg="3">民生医疗</button><button class="btn" data-act="emergencyRespond" data-arg="4">信息公开</button><button class="btn" data-act="emergencyRespond" data-arg="5">审计追责</button></div></div>`;else h+=`<p class="muted">当前无持续事件。</p><button class="btn" data-act="doEmergencyCheck">主动开展应急巡查</button>`;return h}
+function renderEducation(){const p=G.player;return panelHead("学历与能力","学历影响部分岗位竞争，但不会替代基层经历和组织评价。")+`<div class="grid-cards"><div class="mini-card"><h4>攻读本科</h4><button class="btn" data-act="educationAction" data-arg="1" ${DEGREE_LEVELS[p.degree]>=3?"disabled":""}>办理</button></div><div class="mini-card"><h4>攻读硕士</h4><button class="btn" data-act="educationAction" data-arg="2" ${DEGREE_LEVELS[p.degree]>=4||p.age>45?"disabled":""}>办理</button></div><div class="mini-card"><h4>攻读博士</h4><button class="btn" data-act="educationAction" data-arg="3" ${DEGREE_LEVELS[p.degree]>=5||p.age>45?"disabled":""}>办理</button></div><div class="mini-card"><h4>专题培训</h4><button class="btn" data-act="educationAction" data-arg="4">参加</button></div></div>`}
+function renderWork(){const p=G.player;let h=panelHead("日常工作","参考移动端工作系统：把文本性事件、精力消耗、优先级与政绩/民主测评纳入日常工作循环。");h+=`<div class="dark-ref"><div class="stat-grid"><div><b>精力</b><div style="font-size:24px">${Math.round(p.energy)}</div></div><div><b>本期政绩</b><div style="font-size:24px">${Math.round(p.performance)}</div></div><div><b>民主测评</b><div style="font-size:24px">${Math.round(p.democratic_score)}</div></div><div><b>突发事件概率</b><div style="font-size:24px">${Math.round(emergencyChance()*100)}%</div></div></div></div><div class="btn-row"><button class="btn btn-primary" data-act="runWorkDay">安排综合工作（精力 -8）</button><button class="btn" data-act="restAction">轮休/休息（精力 +15）</button><button class="btn" data-act="workStoryEvent">触发故事事件</button></div><h4 class="sub-title">工作任务</h4><div class="grid-cards">${WORK_TASKS.map(t=>`<div class="work-task ${t.priority==="紧急重要"?"high":""}"><h4><span>${t.icon} ${t.name}</span><span>精力-${t.energy}</span></h4><p class="muted">${t.desc}</p><div class="task-meta"><span class="task-tag">${t.priority}</span><span class="task-tag">政绩 +${t.performance}</span>${t.democratic?`<span class="task-tag">民主测评 +${t.democratic}</span>`:""}${t.risk?`<span class="task-tag danger">风险 ${t.risk}</span>`:""}</div><button class="btn" data-act="workTask" data-arg="${t.id}" ${p.energy<t.energy?"disabled":""}>完成任务</button></div>`).join("")}</div>`;return h}
+function renderPersonal(){const p=G.player;let h=panelHead("个人金钱 / 公司 / 房产","个人资产与公职身份存在利益冲突风险。合法资产用于游戏资源循环；违规获利会显著提高纪委进驻概率。");h+=`<div class="card stat-grid"><div>个人现金 <b>${p.personal_cash}</b></div><div>累计财富 <b>${p.wealth}</b></div><div>房产 <b>${p.properties.length}</b></div><div>公司 <b>${p.company.exists?"已设立":"无"}</b></div><div>纪律调查 <b>${p.discipline_investigation?"进驻中":"未进驻"}</b></div></div><div class="grid-cards"><div class="mini-card"><h4>合法工资与津贴</h4><p class="muted">现金 +2~6 · 精力 -3</p><button class="btn" data-act="personalFinanceAction" data-arg="1">领取</button></div><div class="mini-card"><h4>购买合法房产</h4><p class="muted">现金 -8 · 合法自住</p><button class="btn" data-act="personalFinanceAction" data-arg="2">购买</button></div><div class="mini-card"><h4>设立个人公司</h4><p class="muted">现金 -10 · 合法经营</p><button class="btn" data-act="personalFinanceAction" data-arg="3" ${p.company.exists?"disabled":""}>设立</button></div><div class="mini-card mini-danger"><h4>违规关联交易</h4><p class="muted">高收益，但增加廉政风险与纪委进驻概率</p><button class="btn btn-danger" data-act="personalFinanceAction" data-arg="4">高风险获利</button></div><div class="mini-card"><h4>申报并整改利益冲突</h4><p class="muted">现金 -5 · 降低风险</p><button class="btn" data-act="personalFinanceAction" data-arg="5">整改</button></div><div class="mini-card mini-danger"><h4>纪委监委专项检查</h4><p class="muted">主动检查个人公司、房产和利益冲突</p><button class="btn btn-danger" data-act="disciplineCheck">检查</button></div></div>`;if(p.properties.length)h+=`<h4 class="sub-title">房产记录</h4><div class="chip-row">${p.properties.map(x=>`<span class="chip">${x.type} · ${x.value} · ${x.legal?"合法":"违规"}</span>`).join("")}</div>`;if(p.company.exists)h+=`<h4 class="sub-title">公司记录</h4><div class="card"><p>${p.company.name} · 注册资本 ${p.company.capital} · ${p.company.legal?"合法经营":"存在违规关联"}</p></div>`;return h}
+const RENDERERS={overview:renderOverview,achievements:renderAchievements,personnel:renderPersonnel,department:renderDepartment,politics:renderPolitics,ecology:renderPoliticalEcology,livelihood:renderLivelihood,projects:renderProjects,economy:renderEconomy,committee:renderCommittee,congress:renderCongress,promotion:renderPromotion,cadres:renderCadres,resume:renderResume,integrity:renderIntegrity,work:renderWork,personal:renderPersonal,emergency:renderEmergency};
+
+function renderNav(){document.getElementById("sideNav").innerHTML=`<div class="nav-title">功能系统</div>`+VIEWS.map(v=>`<button type="button" class="nav-btn ${UI.view===v.id?"active":""}" data-view="${v.id}">${v.label}</button>`).join("")}
+function renderPanel(){let body=RENDERERS[UI.view]?RENDERERS[UI.view]():renderOverview();document.getElementById("panel").innerHTML=body}
+function renderDashboard(){const p=G.player,rank=rankName(),power=calcPower();document.getElementById("sealText").innerHTML=`${rank}<br>${p.year}`;let h=`<div class="card player-card"><div class="player-id"><h2>${p.name}<span class="muted"> · ${p.age}岁</span></h2><p><b>${rank}</b> · ${currentOffice()} · ${p.department} · ${p.degree}</p><p class="muted">${p.year}年${p.month}月 · 任职 ${p.years_in_post.toFixed(1)}年 · 基层 ${p.grassroots_years}年 · 考核 ${p.annual_assessment} · 中央身份 ${p.central_status}</p></div><div class="chip-row">${chip("能力",p.ability)}${chip("判断",p.political_judgment)}${chip("执行",p.execution)}${chip("廉洁",p.integrity)}${chip("政绩",p.performance)}${chip("声望",p.reputation)}${chip("影响力",p.influence)}${chip("政治资本",p.political_capital)}${chip("精力",p.energy,{warn:20})}${chip("民主测评",p.democratic_score)}${chip("个人现金",p.personal_cash)}<div class="chip power-chip"><span>含权量</span><b>${power}</b></div>${chip("廉政风险",p.corruption_risk,{warn:50})}</div></div>`;
+h+=`<div class="card meters-card">${meter("GDP",G.gdp)}${meter("财政",G.fiscal)}${meter("债务",G.debt,{warn:70})}${meter("就业",G.employment)}${meter("收入",G.income)}${meter("住房",G.housing)}${meter("医疗",G.medical)}${meter("教育",G.education)}${meter("环境",G.environment)}${meter("稳定",G.stability)}${meter("企业活力",G.enterprise)}${meter("公众信任",G.public_trust)}</div>`;
+if(committeeUnlocked())h+=`<div class="card meters-card">${meter("常委支持",G.committee_support)}${meter("常委影响力",G.committee_influence)}${meter("常委冲突",G.committee_conflicts,{warn:60})}</div>`;
+if(G.emergency_active)h+=`<div class="card emergency-banner">⚠ ${G.emergency_name} · 压力 ${G.emergency_pressure}<button class="btn btn-sm" data-view="emergency">前往处置</button></div>`;
+document.getElementById("dashboard").innerHTML=h}
+function renderLogFeed(){document.getElementById("logList").innerHTML=G.history.slice(-35).reverse().map(t=>`<div class="log-item">${escapeHtml(t)}</div>`).join("")||'<p class="muted">暂无记录。</p>'}
+function renderAll(){if(G.pending_event)showEventModal();else hideEventModal();renderDashboard();renderNav();renderPanel();renderLogFeed()}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>t.classList.remove("show"),2200)}
+function showStampAnimation(txt){const ov=document.createElement("div");ov.id="stampOverlay";ov.innerHTML=`<div class="stamp-big">组织任命<br>${escapeHtml(txt).replace(String.fromCharCode(10),"<br>")}</div>`;document.body.appendChild(ov);setTimeout(()=>ov.remove(),1600)}
+function showEnding(title,text,continueOnly){const old=document.getElementById("endingOverlay");if(old)old.remove();const o=document.createElement("div");o.className="overlay";o.id="endingOverlay";o.innerHTML=`<div class="ending-card"><h2>${title}</h2><p>${text}</p>${continueOnly?'<button class="btn btn-primary" data-act="closeOverlay">继续治理</button>':'<button class="btn btn-primary" data-act="restartGame">重新开始</button>'}</div>`;document.body.appendChild(o)}
+function closeOverlay(){document.getElementById("endingOverlay")?.remove()}
+function restartGame(){document.getElementById("endingOverlay")?.remove();document.getElementById("startScreen").style.display="none";G=newGame();UI={view:"overview",selectedCadre:null,selectedDept:null};initGame();renderAll()}
+
+// ======================= 事件绑定 =======================
+document.addEventListener("click",e=>{
+const v=e.target.closest("[data-view]");if(v){e.preventDefault();UI.view=v.dataset.view;UI.selectedCadre=null;UI.selectedDept=null;renderAll();return}
+const el=e.target.closest("[data-act]");if(!el)return;const fn=el.dataset.act;if(typeof window[fn]!=="function")return;let arg;if(el.dataset.arg!==undefined){try{arg=JSON.parse(el.dataset.arg)}catch(_){arg=el.dataset.arg}}if(Array.isArray(arg))window[fn](...arg);else if(arg!==undefined)window[fn](arg);else window[fn]()
+});
+document.getElementById("loadInput").addEventListener("change",function(){loadGameFile(this)});
+document.getElementById("eventModal").addEventListener("click",function(e){if(e.target===this||e.target.classList.contains("modal-backdrop")){if(!G.pending_event)hideEventModal()}});
+renderNav();
+</script>
+</body>
+</html>
